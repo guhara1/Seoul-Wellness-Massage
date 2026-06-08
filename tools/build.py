@@ -12,6 +12,7 @@ sys.path.insert(0, HERE)
 
 import lib
 import data
+import content
 import art, a_region, a_swedish, a_visiting, a_korean, a_thai
 
 lib.NAV_HTML = data.build_nav()
@@ -57,7 +58,7 @@ def lux_sections(secs):
 
 def lux_page(title, desc, path, eyebrow, h1, lead, secs, crumb_items,
              faq=None, byline=None, related=None, og_type="website", jsonld=None,
-             prio="0.6", freq="weekly"):
+             prio="0.6", freq="weekly", full_title=None):
     toc = "".join(f'<li><a href="#sec-{i}">{esc(h)}</a></li>' for i, (h, _) in enumerate(secs, 1))
     rel = ""
     if related:
@@ -76,7 +77,8 @@ def lux_page(title, desc, path, eyebrow, h1, lead, secs, crumb_items,
     if faq:
         body += lib.faq_block(faq)
     body += lib.cta_band()
-    add(path, lib.document(title, desc, path, body, og_type=og_type, jsonld=jsonld), prio, freq)
+    add(path, lib.document(title, desc, path, body, og_type=og_type, jsonld=jsonld,
+        full_title=full_title), prio, freq)
 
 
 # ────────────────────────── 홈 ──────────────────────────
@@ -513,30 +515,76 @@ def build_stations():
         add(f"/seoul/stations/{ls}/", lib.document(f"{ll} 출장마사지 안내",
             f"{ll} 주요 역 인근 출장마사지·홈타이 방문 안내.", f"/seoul/stations/{ls}/", lbody), "0.6", "weekly")
 
-    # 역별 페이지
+    # 역별 페이지 — 노선(환승)·인근 자치구로 차별화
     for st, sname, ls, ll in allst:
-        secs = [
-            (f"{sname}역 인근 출장마사지", lib.P(
-                f"{sname}역 인근으로 방문하는 출장마사지·홈타이 안내입니다. 역세권은 도로 연결이 좋아 "
-                f"예약 시간에 맞춘 빠른 방문이 가능합니다. {sname}역 주변 자택·오피스텔·숙소 어디든 방문합니다.")),
-            ("이용 안내", lib.P(
-                f"{sname}역 인근에서 받을 수 있는 코스는 스웨디시·아로마·타이·스포츠 등 다양합니다. "
-                "오피스텔·호텔이라면 동·호수와 가까운 출구 번호를 알려주시면 더 빠릅니다.")),
-            ("추천 코스·예약", lib.P(
-                "처음이면 90분 스웨디시가 무난합니다. 깊은 이완을 원하면 120분 코스를 권합니다. "
-                f"예약은 {lib.PHONE_D}로, 연중무휴 24시간 상담 가능합니다.")),
-        ]
-        related = [(f"/seoul/stations/{ls}/", f"{ll} 전체 역"), ("/theme/swedish/", "스웨디시 안내"),
-                   ("/course/price/", "가격 안내"), ("/reservation/", "예약 방법")]
+        lines = data.station_lines(st)             # 이 역을 지나는 모든 노선
+        transfer = len(lines) >= 2
+        gu_slug = data.STATION_GU.get(st)          # 인근 자치구(알려진 경우)
+        gu = data.GU_BY_SLUG.get(gu_slug) if gu_slug else None
+        gu_name = gu[0] if gu else None
+        gu_rl = gu[2] if gu else None
+        focus = GU_FOCUS_OF.get(gu_slug, "") if gu_slug else ""
+
+        line_txt = "·".join(lines) if lines else ll
+        if transfer:
+            line_sentence = (f"{sname}역은 {line_txt}이 지나는 환승역으로 교통이 편리해, "
+                             "여러 방향에서 접근이 쉬운 만큼 예약 시간에 맞춘 방문도 수월한 편입니다.")
+        else:
+            line_sentence = (f"{sname}역은 {line_txt} 구간에 위치한 역으로, 역 인근 도로 연결이 좋아 "
+                             "예약 시간에 맞춘 방문이 수월한 편입니다.")
+        gu_sentence = (f"행정구역상 {gu_name} 생활권에 가까워 인근 자택·오피스텔·숙소로 방문 안내가 가능합니다."
+                       if gu_name else "역 인근 자택·오피스텔·숙소로 방문 안내가 가능합니다.")
+
+        secs = []
+        secs.append((f"{sname}역 인근 방문 안내", lib.P(
+            f"{sname}역 인근으로 방문하는 출장마사지·홈타이 안내입니다. {line_sentence} {gu_sentence}")))
+
+        # 노선·환승 안내(역마다 고유)
+        line_links = " · ".join(
+            f'<a href="/seoul/stations/{lsx}/">{llx}</a>'
+            for lsx, llx, _ in data.LINES if llx in lines) or ll
+        secs.append(("노선·환승 안내", lib.P(
+            f"{sname}역을 지나는 노선은 {line_txt}입니다." +
+            ("여러 노선이 만나는 환승역이라 다양한 지역에서 이용하기 좋습니다. " if transfer else "") +
+            f"노선별 역 목록은 {line_links} 안내에서 확인할 수 있습니다.")))
+
+        # 인근 자치구 안내(있을 때)
+        if gu_name:
+            dongs = data.GU_AREAS.get(gu_slug, [])
+            dong_txt = (" 인근에는 " + ", ".join(dongs[:4]) + " 등 생활권이 있어 ") if dongs else " "
+            secs.append((f"{gu_name} 생활권 안내", lib.P(
+                f"{sname}역은 {gu_name} 생활권과 가깝습니다.{dong_txt}자택·오피스텔 방문 모두 가능합니다. "
+                f"{gu_name} 전체 안내는 <a href='/seoul/{gu_slug}/'>{gu_name} 출장마사지·홈타이</a>에서 확인하세요.")))
+
+        # 추천 코스(인근 자치구 유형으로 차별화)
+        secs.append(("추천 코스·예약", lib.P(
+            (_focus_course(sname, focus) if focus else
+             "처음이라면 전신을 고르게 받는 90분 코스가 무난합니다. 스웨디시·아로마·타이·스포츠 등 원하는 테마로 진행할 수 있습니다.") +
+            f" 예약은 {lib.PHONE_D}로 연중무휴 24시간 가능합니다.")))
+
+        related = [(f"/seoul/stations/{ls}/", f"{ll} 전체 역")]
+        if gu_name:
+            related.append((f"/seoul/{gu_slug}/", f"{gu_name} 안내"))
+        related += [("/theme/", "테마별 안내"), ("/reservation/", "예약 방법")]
+
         faq = [
-            (f"{sname}역에서 얼마나 걸리나요", "역 인근은 빠른 방문이 가능하며 출발·도착 시 연락드립니다."),
-            ("호텔·오피스텔도 되나요", "네. 자택·호텔·오피스텔 모두 방문 가능합니다."),
+            (f"{sname}역 인근도 방문되나요",
+             (f"네. {sname}역 인근 {gu_name} 생활권으로 방문하며 정확한 가능 여부는 예약 시 위치를 기준으로 확인합니다."
+              if gu_name else f"네. {sname}역 인근으로 방문하며 정확한 가능 여부는 예약 시 위치를 기준으로 확인합니다.")),
+            ("당일 예약도 가능한가요",
+             "당일 예약은 시간대와 배정 상황에 따라 가능 여부가 달라집니다. 저녁·주말은 사전 예약을 권장합니다."),
         ]
-        lux_page(f"{sname}역 출장마사지", f"{sname}역({ll}) 인근 출장마사지·홈타이 방문 안내. 역세권 빠른 방문, 24시간 예약.",
-                 f"/seoul/stations/{st}-station/", f"{ll} · {sname}역", f"{sname}역 출장마사지 안내",
-                 f"{sname}역 인근으로 방문하는 출장마사지·홈타이. 역세권 빠른 방문, 예약한 시간에 편안하게.",
-                 secs, [("/", "홈"), ("/seoul/stations/", "지하철역별 안내"), (f"/seoul/stations/{ls}/", ll), (None, sname + "역")],
-                 faq=faq, related=related, jsonld=lib.faq_jsonld(faq), prio="0.6")
+        eyebrow = f"{line_txt} · {sname}역"
+        crumbs = [("/", "홈"), ("/seoul/stations/", "지하철역별 안내"),
+                  (f"/seoul/stations/{ls}/", ll), (None, sname + "역")]
+        full_title = f"{sname}역 출장마사지·홈타이 | {sname}역 인근 방문 마사지 예약 안내"
+        desc = (f"{sname}역({line_txt}) 인근 출장마사지·홈타이 방문 안내. "
+                + (f"{gu_name} 생활권 방문, " if gu_name else "") + "예약 전 확인사항과 추천 코스 안내.")
+        lux_page(f"{sname}역 출장마사지·홈타이", desc,
+                 f"/seoul/stations/{st}-station/", eyebrow, f"{sname}역 출장마사지·홈타이 안내",
+                 f"{sname}역 인근으로 방문하는 출장마사지·홈타이 안내입니다. 노선·인근 생활권과 예약 전 확인사항을 정리했습니다.",
+                 secs, crumbs, faq=faq, related=related, jsonld=lib.faq_jsonld(faq),
+                 prio="0.6", full_title=full_title)
 
 
 # ────────────────────────── 테마 14 ──────────────────────────
@@ -553,26 +601,22 @@ def build_themes():
         "/theme/", hbody), "0.8", "weekly")
 
     for s, n, d in data.THEMES:
-        secs = [
-            (f"{n}란?", lib.P(f"{n}는 {d}입니다. 웰니스센터에서는 고객의 컨디션에 맞춰 압과 시간을 조절해 진행합니다.")),
-            ("이런 분께 추천", lib.P(
-                f"{n}는 목적에 맞는 분께 특히 잘 맞습니다. 처음이라면 90분 코스로 부담 없이 체험해 보세요. "
-                "압·집중 부위는 편하게 요청하실 수 있습니다.")),
-            ("이용·예약 안내", lib.P(
-                f"방문 관리로 자택·호텔·오피스텔 어디든 받으실 수 있습니다. 요금은 "
-                "<a href='/course/price/'>가격 안내</a>를 참고하시고, 예약은 "
-                f"{lib.PHONE_D}로 24시간 가능합니다.")),
-        ]
-        related = [("/theme/", "전체 테마"), ("/course/guide/", "코스 선택 가이드"),
+        c = content.THEME_CONTENT.get(s)
+        if c:
+            lead, secs, faq = c
+        else:
+            lead = d + "입니다."
+            secs = [(f"{n}란?", lib.P(f"{n}는 {d}입니다. 컨디션에 맞춰 압과 시간을 조절해 진행합니다.")),
+                    ("이용·예약 안내", lib.P("방문 관리로 자택·호텔·오피스텔 어디든 받으실 수 있습니다."))]
+            faq = [(f"{n}는 처음도 괜찮나요", "네. 컨디션에 맞춰 진행하니 부담 없이 받으실 수 있습니다.")]
+        related = [("/theme/", "전체 테마 보기"), ("/course/guide/", "코스 선택 가이드"),
                    ("/course/price/", "가격 안내"), ("/reservation/", "예약 방법")]
-        faq = [
-            (f"{n}는 처음도 괜찮나요", "네. 컨디션에 맞춰 진행하니 부담 없이 받으실 수 있습니다."),
-            ("압 조절이 되나요", "네. 진행 중 편하게 요청하시면 조절해 드립니다."),
-        ]
-        lux_page(f"{n} 출장마사지", f"{n} 출장마사지 안내 — {d}. 방문 관리, 정찰 요금, 24시간 예약.",
-                 f"/theme/{s}/", "THEME", f"{n} 안내", d + "입니다.",
+        full_title = f"{n} 출장마사지·홈타이 | {n} 방문 관리 예약 안내"
+        lux_page(f"{n} 안내", f"{n} 출장마사지·홈타이 방문 관리 안내. {lead[:80]}",
+                 f"/theme/{s}/", f"THEME · {n}", f"{n} 방문 관리 안내", lead,
                  secs, [("/", "홈"), ("/theme/", "테마별 안내"), (None, n)],
-                 faq=faq, related=related, jsonld=lib.faq_jsonld(faq), prio="0.7")
+                 faq=faq, related=related, jsonld=lib.faq_jsonld(faq), prio="0.7",
+                 full_title=full_title)
 
 
 # ────────────────────────── 코스 8 ──────────────────────────
@@ -609,26 +653,27 @@ def build_courses():
                     "<li>활력·유연성 → <a href='/theme/thai-massage/'>타이마사지</a></li></ul>"),
                 ("시간 선택", lib.P("처음이면 90분이 무난합니다. 충분한 이완을 원하면 120분을 권합니다.")),
             ]
-        else:
-            secs = [
-                (f"{n}란?", lib.P(f"{n}는 {d}입니다. 고객의 컨디션에 맞춰 압과 범위를 조절해 진행합니다.")),
-                ("이용 안내", lib.P(
-                    "방문 관리로 자택·호텔·오피스텔 어디서든 받으실 수 있습니다. 집중하고 싶은 부위가 있으면 미리 말씀해 주세요.")),
-                ("요금·예약", lib.P(
-                    "요금은 <a href='/course/price/'>가격 안내</a>를 참고하세요. 예약은 "
-                    f"{lib.PHONE_D}로 연중무휴 24시간 가능합니다.")),
+        cc = content.COURSE_CONTENT.get(s)
+        if s in ("price", "guide"):
+            lead = d + "입니다."
+            faq = [
+                ("요금이 궁금해요", "60분 90,000원, 90분 150,000원, 120분 180,000원 정찰 요금 기준입니다."),
+                ("예약은 어떻게 하나요", f"{lib.PHONE_D}로 전화 주시면 24시간 안내해 드립니다."),
             ]
+        elif cc:
+            lead, secs, faq = cc
+        else:
+            lead = d + "입니다."
+            secs = [(f"{n}란?", lib.P(f"{n}는 {d}입니다. 컨디션에 맞춰 진행합니다.")),
+                    ("요금·예약", lib.P("요금은 <a href='/course/price/'>가격 안내</a>를 참고하세요."))]
+            faq = [("예약은 어떻게 하나요", f"{lib.PHONE_D}로 전화 주시면 24시간 안내해 드립니다.")]
         related = [("/course/", "전체 코스"), ("/course/price/", "가격 안내"),
                    ("/course/guide/", "코스 선택 가이드"), ("/reservation/", "예약 방법")]
-        faq = [
-            (f"{n}는 얼마인가요" if s not in ("price", "guide") else "요금이 궁금해요",
-             "60분 90,000원, 90분 150,000원, 120분 180,000원 정찰 요금 기준입니다."),
-            ("예약은 어떻게 하나요", f"{lib.PHONE_D}로 전화 주시면 24시간 안내해 드립니다."),
-        ]
-        lux_page(n, f"{n} — {d}. 출장마사지 방문 관리, 정찰 요금, 24시간 예약 안내.",
-                 f"/course/{s}/", "COURSE", n, d + "입니다.",
+        full_title = f"{n} | 출장마사지·홈타이 코스 안내"
+        lux_page(f"{n}", f"{n} 안내 — {lead[:80]}", f"/course/{s}/", f"COURSE · {n}", n, lead,
                  secs, [("/", "홈"), ("/course/", "코스안내"), (None, n)],
-                 faq=faq, related=related, jsonld=lib.faq_jsonld(faq), prio="0.7")
+                 faq=faq, related=related, jsonld=lib.faq_jsonld(faq), prio="0.7",
+                 full_title=full_title)
 
 
 # ────────────────────────── 예약 / 가이드 / 후기 / 고객센터 ──────────────────────────

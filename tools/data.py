@@ -182,26 +182,26 @@ LINES = [
         "dongnimmun gyeongbokgung anguk jongno-3ga euljiro-3ga chungmuro dongguk-univ "
         "yaksu geumho oksu apgujeong sinsa jamwon express-bus-terminal gyodae nambu-terminal "
         "yangjae maebong dogok daechi hangnyeoul daecheong irwon suseo"),
-    ("line-4", "4호선", "danggogae sanggye nogang changdong ssangmun suyu mia "
+    ("line-4", "4호선", "danggogae sanggye nowon chang-dong ssangmun suyu mia "
         "miasageori gireum sungshin-womens-univ hansung-univ hyehwa dongdaemun "
         "dongdaemun-history-park chungmuro myeong-dong hoehyeon seoul-station sukdae-ipgu "
         "samgakji sinyongsan ichon dongjak chongsin-univ isu sadang namtaeryeong seoul-racecourse"),
-    ("line-5", "5호선", "banghwa gaehwasan gimpo-airport songjeong magongnaru sinbanghwa "
-        "gaehwasan-r hwagok kkachisan sinjeong mokdong omokgyo yangpyeong yeongdeungpo-market "
-        "yeouinaru yeouido yeoui-yeouido mapo gongdeok aeogae chungjeongno seodaemun gwanghwamun "
+    ("line-5", "5호선", "banghwa gaehwasan gimpo-airport songjeong magongnaru balsan ujangsan "
+        "hwagok kkachisan sinjeong mokdong omokgyo yangpyeong yeongdeungpo-market "
+        "yeouinaru yeouido mapo gongdeok aeogae chungjeongno seodaemun gwanghwamun "
         "jongno-3ga euljiro-4ga dongdaemun-history-park cheonggu sindang sangwangsimni wangsimni "
         "majang dapsimni janghanpyeong gunja achasan gwangnaru cheonho gangdong gildong"),
     ("line-6", "6호선", "eungam yeokchon bulgwang dokbawi yeonsinnae gusan saejeol "
         "jeungsan digital-media-city worldcup-stadium mangwon hapjeong sangsu gwangheungchang "
         "daeheung gongdeok hyochang-park samgakji noksapyeong itaewon hangangjin "
         "beotigogae yaksu cheonggu sindang dongmyo changsin bomun anam korea-univ wolgok sangwolgok"),
-    ("line-7", "7호선", "jangam dobongsan-7 suraksan madeul nowon junggye hagye gongneung "
+    ("line-7", "7호선", "jangam dobongsan suraksan madeul nowon junggye hagye gongneung "
         "taereung meokgol junghwa sangbong myeonmok sagajeong yongmasan junggok gunja "
         "children-grand-park ttukseom-resort konkuk-univ cheongdam gangnam-gu-office "
         "hak-dong nonhyeon banpo express-bus-terminal naebang isu namseong sadang "
-        "sasang-r boramae sindaebang-samgeori jangseungbaegi sindaebang"),
+        "boramae sindaebang-samgeori jangseungbaegi sindaebang"),
     ("line-8", "8호선", "amsa cheonho gangdong-guoffice mongchontoseong jamsil "
-        "seoknchon songpa garak-market munjeong jangji bokjeong sanseong namhansanseong"),
+        "seokchon songpa garak-market munjeong jangji bokjeong sanseong namhansanseong"),
     ("line-9", "9호선", "gaehwa airport-market sinbanghwa magongnaru yangcheon-hyanggyo "
         "gayang jeungmi deungchon yeomchang sinmokdong seonyudo dangsan gukhoe "
         "yeouido saetgang nodeul noryangjin heukseok dongjak gubanpo sinbanpo express-bus-terminal "
@@ -210,17 +210,17 @@ LINES = [
         "jeongja migeum dongcheon suji-guuni sanghyeon"),
     ("suin-bundang", "수인분당선", "wangsimni seoulforest apgujeong-rodeo gangnam-gu-office "
         "seonjeongneung seolleung hanti dogok guryong gaepo-dong daemosan suseo bokjeong"),
-    ("gyeongui-jungang", "경의중앙선", "munsan-r seoul-station sinchon-g gajwa digital-media-city "
-        "hongdae-r gongdeok seoulforest-g wangsimni cheongnyangni hoegi jungnang sangbong mangu"),
+    ("gyeongui-jungang", "경의중앙선", "munsan seoul-station gajwa digital-media-city "
+        "hongik-univ gongdeok wangsimni cheongnyangni hoegi jungnang sangbong mangu"),
     ("gyeongchun", "경춘선", "cheongnyangni hoegi jungnang sangbong mangu galmae byeollae "
         "toegyewon sareung geumgok pyeongnae-hopyeong"),
-    ("airport", "공항철도", "seoul-station gongdeok hongik-univ-a digital-media-city-a "
-        "magongnaru gimpo-airport-a gyeyang geomam"),
-    ("sillim", "신림선", "saetgang-s daebang-s seoul-national-univ-venture boramae-s "
-        "sillim-s gwanaksan seowon"),
-    ("ui-sinseol", "우이신설선", "bukhansan-ui solbat 4-19-democracy gaeunsa hwagye "
+    ("airport", "공항철도", "seoul-station gongdeok hongik-univ digital-media-city "
+        "magongnaru gimpo-airport gyeyang geomam"),
+    ("sillim", "신림선", "saetgang daebang seoul-national-univ-venture boramae "
+        "sillim gwanaksan seowon"),
+    ("ui-sinseol", "우이신설선", "bukhansan-ui solbat 4-19-democracy gaori hwagye "
         "samyang samyang-sageori solsaem bomun sinseol-dong"),
-    ("seohae", "서해선", "sosa-r soraepogu siheung-daeya siheung-neunggok"),
+    ("seohae", "서해선", "sosa soraepogu siheung-daeya siheung-neunggok"),
 ]
 
 
@@ -233,22 +233,104 @@ def station_name(slug):
     return STATION_NAMES.get(slug, slug.replace("-", " ").title())
 
 
-# 슬러그→한글 역명 (주요 역; 없는 경우 슬러그 표기 사용)
+# 슬러그→한글 역명 (전 노선)
 STATION_NAMES = {
-    "city-hall": "시청", "seoul-station": "서울역", "gangnam": "강남", "jamsil": "잠실",
-    "hongik-univ": "홍대입구", "konkuk-univ": "건대입구", "samseong": "삼성", "yeoksam": "역삼",
-    "seolleung": "선릉", "gyodae": "교대", "sadang": "사당", "sillim": "신림", "sinchon": "신촌",
-    "ewha-womans-univ": "이대", "wangsimni": "왕십리", "seongsu": "성수", "itaewon": "이태원",
-    "yongsan": "용산", "yeouido": "여의도", "express-bus-terminal": "고속터미널", "sinsa": "신사",
-    "apgujeong": "압구정", "cheongnyangni": "청량리", "nowon": "노원", "chang-dong": "창동",
-    "gangbyeon": "강변", "cheonho": "천호", "myeong-dong": "명동", "gwanghwamun": "광화문",
-    "jongno-3ga": "종로3가", "gongdeok": "공덕", "mapo": "마포", "yangjae": "양재",
-    "pangyo": "판교", "jeongja": "정자", "seoulforest": "서울숲", "dangsan": "당산",
-    "hapjeong": "합정", "mangwon": "망원", "noryangjin": "노량진", "dongjak": "동작",
-    "yeonsinnae": "연신내", "bulgwang": "불광", "suyu": "수유", "mia": "미아",
-    "hyehwa": "혜화", "anguk": "안국", "gyeongbokgung": "경복궁", "chungmuro": "충무로",
-    "dongdaemun": "동대문", "gupabal": "구파발", "suseo": "수서", "garak-market": "가락시장",
-    "mongchontoseong": "몽촌토성", "gimpo-airport": "김포공항", "magongnaru": "마곡나루",
+    # 1호선
+    "dobongsan": "도봉산", "dobong": "도봉", "banghak": "방학", "chang-dong": "창동",
+    "nokcheon": "녹천", "wolgye": "월계", "gwangun-univ": "광운대", "seokgye": "석계",
+    "sinimun": "신이문", "hufs-front": "외대앞", "hoegi": "회기", "cheongnyangni": "청량리",
+    "jegi-dong": "제기동", "sinseol-dong": "신설동", "dongmyo": "동묘앞", "dongdaemun": "동대문",
+    "jongno-5ga": "종로5가", "jongno-3ga": "종로3가", "jonggak": "종각", "city-hall": "시청",
+    "seoul-station": "서울역", "namyeong": "남영", "yongsan": "용산", "noryangjin": "노량진",
+    "daebang": "대방", "singil": "신길", "yeongdeungpo": "영등포", "sindorim": "신도림",
+    "guro": "구로", "gasan-digital-complex": "가산디지털단지", "doksan": "독산",
+    "geumcheon-gu-office": "금천구청",
+    # 2호선
+    "euljiro-1ga": "을지로입구", "euljiro-3ga": "을지로3가", "euljiro-4ga": "을지로4가",
+    "dongdaemun-history-park": "동대문역사문화공원", "sindang": "신당", "sangwangsimni": "상왕십리",
+    "wangsimni": "왕십리", "hanyang-univ": "한양대", "ttukseom": "뚝섬", "seongsu": "성수",
+    "konkuk-univ": "건대입구", "guui": "구의", "gangbyeon": "강변", "jamsillaru": "잠실나루",
+    "jamsil": "잠실", "jamsilsaenae": "잠실새내", "sports-complex": "종합운동장", "samseong": "삼성",
+    "seolleung": "선릉", "yeoksam": "역삼", "gangnam": "강남", "gyodae": "교대", "seocho": "서초",
+    "bangbae": "방배", "sadang": "사당", "nakseongdae": "낙성대", "seoul-nat-univ": "서울대입구",
+    "bongcheon": "봉천", "sillim": "신림", "sindaebang": "신대방",
+    "guro-digital-complex": "구로디지털단지", "daerim": "대림", "mullae": "문래",
+    "yeongdeungpo-gu-office": "영등포구청", "dangsan": "당산", "hapjeong": "합정",
+    "hongik-univ": "홍대입구", "sinchon": "신촌", "ewha-womans-univ": "이대",
+    "ahyeon": "아현", "chungjeongno": "충정로",
+    # 3호선
+    "gupabal": "구파발", "yeonsinnae": "연신내", "bulgwang": "불광", "nokbeon": "녹번",
+    "hongje": "홍제", "muakjae": "무악재", "dongnimmun": "독립문", "gyeongbokgung": "경복궁",
+    "anguk": "안국", "chungmuro": "충무로", "dongguk-univ": "동대입구", "yaksu": "약수",
+    "geumho": "금호", "oksu": "옥수", "apgujeong": "압구정", "sinsa": "신사", "jamwon": "잠원",
+    "express-bus-terminal": "고속터미널", "nambu-terminal": "남부터미널", "yangjae": "양재",
+    "maebong": "매봉", "dogok": "도곡", "daechi": "대치", "hangnyeoul": "학여울",
+    "daecheong": "대청", "irwon": "일원", "suseo": "수서",
+    # 4호선
+    "danggogae": "당고개", "sanggye": "상계", "nowon": "노원", "ssangmun": "쌍문", "suyu": "수유",
+    "mia": "미아", "miasageori": "미아사거리", "gireum": "길음", "sungshin-womens-univ": "성신여대입구",
+    "hansung-univ": "한성대입구", "hyehwa": "혜화", "myeong-dong": "명동", "hoehyeon": "회현",
+    "sukdae-ipgu": "숙대입구", "samgakji": "삼각지", "sinyongsan": "신용산", "ichon": "이촌",
+    "dongjak": "동작", "chongsin-univ": "총신대입구", "isu": "이수", "namtaeryeong": "남태령",
+    "seoul-racecourse": "경마공원",
+    # 5호선
+    "banghwa": "방화", "gaehwasan": "개화산", "gimpo-airport": "김포공항", "songjeong": "송정",
+    "magongnaru": "마곡나루", "balsan": "발산", "ujangsan": "우장산", "hwagok": "화곡",
+    "kkachisan": "까치산", "sinjeong": "신정", "mokdong": "목동", "omokgyo": "오목교",
+    "yangpyeong": "양평", "yeongdeungpo-market": "영등포시장", "yeouinaru": "여의나루",
+    "yeouido": "여의도", "mapo": "마포", "gongdeok": "공덕", "aeogae": "애오개",
+    "seodaemun": "서대문", "gwanghwamun": "광화문", "cheonggu": "청구", "majang": "마장",
+    "dapsimni": "답십리", "janghanpyeong": "장한평", "gunja": "군자", "achasan": "아차산",
+    "gwangnaru": "광나루", "cheonho": "천호", "gangdong": "강동", "gildong": "길동",
+    # 6호선
+    "eungam": "응암", "yeokchon": "역촌", "dokbawi": "독바위", "gusan": "구산", "saejeol": "새절",
+    "jeungsan": "증산", "digital-media-city": "디지털미디어시티", "worldcup-stadium": "월드컵경기장",
+    "mangwon": "망원", "sangsu": "상수", "gwangheungchang": "광흥창", "daeheung": "대흥",
+    "hyochang-park": "효창공원앞", "noksapyeong": "녹사평", "itaewon": "이태원",
+    "hangangjin": "한강진", "beotigogae": "버티고개", "changsin": "창신", "bomun": "보문",
+    "anam": "안암", "korea-univ": "고려대", "wolgok": "월곡", "sangwolgok": "상월곡",
+    # 7호선
+    "jangam": "장암", "suraksan": "수락산", "madeul": "마들", "junggye": "중계", "hagye": "하계",
+    "gongneung": "공릉", "taereung": "태릉입구", "meokgol": "먹골", "junghwa": "중화",
+    "myeonmok": "면목", "sagajeong": "사가정", "yongmasan": "용마산", "junggok": "중곡",
+    "children-grand-park": "어린이대공원", "ttukseom-resort": "뚝섬유원지", "cheongdam": "청담",
+    "gangnam-gu-office": "강남구청", "hak-dong": "학동", "nonhyeon": "논현", "banpo": "반포",
+    "naebang": "내방", "namseong": "남성", "boramae": "보라매",
+    "sindaebang-samgeori": "신대방삼거리", "jangseungbaegi": "장승배기",
+    # 8호선
+    "amsa": "암사", "gangdong-guoffice": "강동구청", "mongchontoseong": "몽촌토성",
+    "seokchon": "석촌", "songpa": "송파", "garak-market": "가락시장", "munjeong": "문정",
+    "jangji": "장지", "bokjeong": "복정", "sanseong": "산성", "namhansanseong": "남한산성입구",
+    # 9호선
+    "gaehwa": "개화", "airport-market": "공항시장", "sinbanghwa": "신방화",
+    "yangcheon-hyanggyo": "양천향교", "gayang": "가양", "jeungmi": "증미", "deungchon": "등촌",
+    "yeomchang": "염창", "sinmokdong": "신목동", "seonyudo": "선유도", "gukhoe": "국회의사당",
+    "saetgang": "샛강", "nodeul": "노들", "heukseok": "흑석", "gubanpo": "구반포",
+    "sinbanpo": "신반포", "sapyeong": "사평", "sinnonhyeon": "신논현", "eonju": "언주",
+    "seonjeongneung": "선정릉", "samseong-jungang": "삼성중앙", "bongeunsa": "봉은사",
+    # 신분당선
+    "yangjae-citizens-forest": "양재시민의숲", "cheonggyesan": "청계산입구", "pangyo": "판교",
+    "jeongja": "정자", "migeum": "미금", "dongcheon": "동천", "suji-guuni": "수지구청",
+    "sanghyeon": "상현",
+    # 수인분당선
+    "seoulforest": "서울숲", "apgujeong-rodeo": "압구정로데오", "hanti": "한티",
+    "guryong": "구룡", "gaepo-dong": "개포동", "daemosan": "대모산입구",
+    # 경의중앙선
+    "munsan": "문산", "gajwa": "가좌", "jungnang": "중랑", "mangu": "망우", "sangbong": "상봉",
+    # 경춘선
+    "galmae": "갈매", "byeollae": "별내", "toegyewon": "퇴계원", "sareung": "사릉",
+    "geumgok": "금곡", "pyeongnae-hopyeong": "평내호평",
+    # 공항철도
+    "gyeyang": "계양", "geomam": "검암",
+    # 신림선
+    "seoul-national-univ-venture": "서울대벤처타운", "gwanaksan": "관악산", "seowon": "서원",
+    # 우이신설선
+    "bukhansan-ui": "북한산우이", "solbat": "솔밭공원", "4-19-democracy": "4·19민주묘지",
+    "gaori": "가오리", "hwagye": "화계", "samyang": "삼양", "samyang-sageori": "삼양사거리",
+    "solsaem": "솔샘",
+    # 서해선
+    "sosa": "소사", "soraepogu": "소래포구", "siheung-daeya": "시흥대야",
+    "siheung-neunggok": "시흥능곡",
 }
 
 # ────────────────────────── 내비게이션 생성 ──────────────────────────
@@ -351,3 +433,16 @@ def all_stations():
             seen[st] = True
             out.append((st, station_name(st), ls, ll))
     return out
+
+
+def station_lines(slug):
+    """해당 역을 지나는 모든 노선 라벨(환승 정보)."""
+    out = []
+    for ls, ll, blob in LINES:
+        if slug in _stations(blob):
+            out.append(ll)
+    return out
+
+
+# 역 슬러그 → 자치구 슬러그 (GU_STATIONS 역매핑; 차별화·내부링크용)
+STATION_GU = {st: gu for gu, sts in GU_STATIONS.items() for st in sts}
