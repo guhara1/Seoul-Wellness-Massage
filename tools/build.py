@@ -251,8 +251,9 @@ def build_home():
     desc = ("서울 출장마사지·홈타이 안내 페이지입니다. 서울 전지역 방문 가능 지역, 지하철역 인근, "
             "테마별 관리, 예약 전 확인사항을 한눈에 확인해보세요.")
     full_title = "서울 출장마사지·홈타이 | 서울 전지역 방문 마사지 예약 안내"
+    naver = '<meta name="naver-site-verification" content="d162b05f213460e37758588567b7d1b03a7d8fe3" />\n'
     add("/", lib.document("서울 출장마사지·홈타이 예약 안내", desc, "/", body,
-        jsonld=jsonld, full_title=full_title), "1.0", "daily")
+        jsonld=jsonld, full_title=full_title, head_extra=naver), "1.0", "daily")
 
 
 # ────────────────────────── 서울 허브 / 지역 ──────────────────────────

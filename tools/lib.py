@@ -333,7 +333,7 @@ def P(*ps):
     return "".join(f"<p>{x}</p>" for x in ps)
 
 # ────────────────────────── <head> ──────────────────────────
-def head(title, desc, path, og_type="website", full_title=None):
+def head(title, desc, path, og_type="website", full_title=None, head_extra=""):
     url = DOMAIN + path
     t = full_title if full_title else f"{title} | {SITE}"
     return f"""<!doctype html>
@@ -364,7 +364,7 @@ def head(title, desc, path, og_type="website", full_title=None):
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<style>{CSS}</style>
+{head_extra}<style>{CSS}</style>
 </head>
 <body>"""
 
@@ -455,11 +455,11 @@ SCRIPT = """<script>
 })();
 </script>"""
 
-def document(title, desc, path, body, og_type="website", jsonld=None, full_title=None):
+def document(title, desc, path, body, og_type="website", jsonld=None, full_title=None, head_extra=""):
     ld = ""
     if jsonld:
         ld = f'<script type="application/ld+json">{jsonld}</script>'
-    return (head(title, desc, path, og_type, full_title=full_title) + header() + body + footer()
+    return (head(title, desc, path, og_type, full_title=full_title, head_extra=head_extra) + header() + body + footer()
             + CALLFAB + ld + SCRIPT + "\n</body>\n</html>\n")
 
 # ────────────────────────── 공통 조각 ──────────────────────────
