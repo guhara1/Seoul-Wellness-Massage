@@ -444,5 +444,118 @@ def station_lines(slug):
     return out
 
 
-# 역 슬러그 → 자치구 슬러그 (GU_STATIONS 역매핑; 차별화·내부링크용)
-STATION_GU = {st: gu for gu, sts in GU_STATIONS.items() for st in sts}
+def station_neighbors(slug):
+    """노선 순서 기준 인접역(앞/뒤) 슬러그 목록(중복 제거, 자기 제외)."""
+    out = []
+    for ls, ll, blob in LINES:
+        sts = _stations(blob)
+        if slug in sts:
+            i = sts.index(slug)
+            for j in (i - 1, i + 1):
+                if 0 <= j < len(sts):
+                    out.append(sts[j])
+    seen, res = set(), []
+    for s in out:
+        if s != slug and s not in seen:
+            seen.add(s)
+            res.append(s)
+    return res
+
+
+# 역 슬러그 → 자치구 슬러그 (전 역; 서울 외 역은 미포함)
+STATION_GU = {
+    # 1호선
+    "dobongsan": "dobong-gu", "dobong": "dobong-gu", "banghak": "dobong-gu", "chang-dong": "dobong-gu",
+    "nokcheon": "nowon-gu", "wolgye": "nowon-gu", "gwangun-univ": "nowon-gu", "seokgye": "nowon-gu",
+    "sinimun": "dongdaemun-gu", "hufs-front": "dongdaemun-gu", "hoegi": "dongdaemun-gu",
+    "cheongnyangni": "dongdaemun-gu", "jegi-dong": "dongdaemun-gu", "sinseol-dong": "dongdaemun-gu",
+    "dongmyo": "jongno-gu", "dongdaemun": "jongno-gu", "jongno-5ga": "jongno-gu",
+    "jongno-3ga": "jongno-gu", "jonggak": "jongno-gu", "city-hall": "jung-gu", "seoul-station": "jung-gu",
+    "namyeong": "yongsan-gu", "yongsan": "yongsan-gu", "noryangjin": "dongjak-gu",
+    "daebang": "yeongdeungpo-gu", "singil": "yeongdeungpo-gu", "yeongdeungpo": "yeongdeungpo-gu",
+    "sindorim": "guro-gu", "guro": "guro-gu", "gasan-digital-complex": "geumcheon-gu",
+    "doksan": "geumcheon-gu", "geumcheon-gu-office": "geumcheon-gu",
+    # 2호선
+    "euljiro-1ga": "jung-gu", "euljiro-3ga": "jung-gu", "euljiro-4ga": "jung-gu",
+    "dongdaemun-history-park": "jung-gu", "sindang": "jung-gu", "sangwangsimni": "seongdong-gu",
+    "wangsimni": "seongdong-gu", "hanyang-univ": "seongdong-gu", "ttukseom": "seongdong-gu",
+    "seongsu": "seongdong-gu", "konkuk-univ": "gwangjin-gu", "guui": "gwangjin-gu",
+    "gangbyeon": "gwangjin-gu", "jamsillaru": "songpa-gu", "jamsil": "songpa-gu",
+    "jamsilsaenae": "songpa-gu", "sports-complex": "songpa-gu", "samseong": "gangnam-gu",
+    "seolleung": "gangnam-gu", "yeoksam": "gangnam-gu", "gangnam": "gangnam-gu", "gyodae": "seocho-gu",
+    "seocho": "seocho-gu", "bangbae": "seocho-gu", "sadang": "dongjak-gu", "nakseongdae": "gwanak-gu",
+    "seoul-nat-univ": "gwanak-gu", "bongcheon": "gwanak-gu", "sillim": "gwanak-gu",
+    "sindaebang": "dongjak-gu", "guro-digital-complex": "guro-gu", "daerim": "yeongdeungpo-gu",
+    "mullae": "yeongdeungpo-gu", "yeongdeungpo-gu-office": "yeongdeungpo-gu", "dangsan": "yeongdeungpo-gu",
+    "hapjeong": "mapo-gu", "hongik-univ": "mapo-gu", "sinchon": "seodaemun-gu",
+    "ewha-womans-univ": "seodaemun-gu", "ahyeon": "mapo-gu", "chungjeongno": "seodaemun-gu",
+    # 3호선
+    "gupabal": "eunpyeong-gu", "yeonsinnae": "eunpyeong-gu", "bulgwang": "eunpyeong-gu",
+    "nokbeon": "eunpyeong-gu", "hongje": "seodaemun-gu", "muakjae": "seodaemun-gu",
+    "dongnimmun": "seodaemun-gu", "gyeongbokgung": "jongno-gu", "anguk": "jongno-gu",
+    "chungmuro": "jung-gu", "dongguk-univ": "jung-gu", "yaksu": "jung-gu", "geumho": "seongdong-gu",
+    "oksu": "seongdong-gu", "apgujeong": "gangnam-gu", "sinsa": "gangnam-gu", "jamwon": "seocho-gu",
+    "express-bus-terminal": "seocho-gu", "nambu-terminal": "seocho-gu", "yangjae": "seocho-gu",
+    "maebong": "gangnam-gu", "dogok": "gangnam-gu", "daechi": "gangnam-gu", "hangnyeoul": "gangnam-gu",
+    "daecheong": "gangnam-gu", "irwon": "gangnam-gu", "suseo": "gangnam-gu",
+    # 4호선
+    "danggogae": "nowon-gu", "sanggye": "nowon-gu", "nowon": "nowon-gu", "ssangmun": "dobong-gu",
+    "suyu": "gangbuk-gu", "mia": "gangbuk-gu", "miasageori": "gangbuk-gu", "gireum": "seongbuk-gu",
+    "sungshin-womens-univ": "seongbuk-gu", "hansung-univ": "seongbuk-gu", "hyehwa": "jongno-gu",
+    "myeong-dong": "jung-gu", "hoehyeon": "jung-gu", "sukdae-ipgu": "yongsan-gu", "samgakji": "yongsan-gu",
+    "sinyongsan": "yongsan-gu", "ichon": "yongsan-gu", "dongjak": "dongjak-gu",
+    "chongsin-univ": "dongjak-gu", "isu": "dongjak-gu", "namtaeryeong": "gwanak-gu",
+    # 5호선
+    "banghwa": "gangseo-gu", "gaehwasan": "gangseo-gu", "gimpo-airport": "gangseo-gu",
+    "songjeong": "gangseo-gu", "magongnaru": "gangseo-gu", "balsan": "gangseo-gu",
+    "ujangsan": "gangseo-gu", "hwagok": "gangseo-gu", "kkachisan": "yangcheon-gu",
+    "sinjeong": "yangcheon-gu", "mokdong": "yangcheon-gu", "omokgyo": "yangcheon-gu",
+    "yangpyeong": "yeongdeungpo-gu", "yeongdeungpo-market": "yeongdeungpo-gu",
+    "yeouinaru": "yeongdeungpo-gu", "yeouido": "yeongdeungpo-gu", "mapo": "mapo-gu",
+    "gongdeok": "mapo-gu", "aeogae": "mapo-gu", "seodaemun": "jongno-gu", "gwanghwamun": "jongno-gu",
+    "cheonggu": "jung-gu", "majang": "seongdong-gu", "dapsimni": "dongdaemun-gu",
+    "janghanpyeong": "dongdaemun-gu", "gunja": "gwangjin-gu", "achasan": "gwangjin-gu",
+    "gwangnaru": "gwangjin-gu", "cheonho": "gangdong-gu", "gangdong": "gangdong-gu", "gildong": "gangdong-gu",
+    # 6호선
+    "eungam": "eunpyeong-gu", "yeokchon": "eunpyeong-gu", "dokbawi": "eunpyeong-gu",
+    "gusan": "eunpyeong-gu", "saejeol": "eunpyeong-gu", "jeungsan": "eunpyeong-gu",
+    "digital-media-city": "mapo-gu", "worldcup-stadium": "mapo-gu", "mangwon": "mapo-gu",
+    "sangsu": "mapo-gu", "gwangheungchang": "mapo-gu", "daeheung": "mapo-gu",
+    "hyochang-park": "yongsan-gu", "noksapyeong": "yongsan-gu", "itaewon": "yongsan-gu",
+    "hangangjin": "yongsan-gu", "beotigogae": "jung-gu", "changsin": "jongno-gu", "bomun": "seongbuk-gu",
+    "anam": "seongbuk-gu", "korea-univ": "seongbuk-gu", "wolgok": "seongbuk-gu", "sangwolgok": "seongbuk-gu",
+    # 7호선
+    "suraksan": "nowon-gu", "madeul": "nowon-gu", "junggye": "nowon-gu", "hagye": "nowon-gu",
+    "gongneung": "nowon-gu", "taereung": "nowon-gu", "meokgol": "jungnang-gu", "junghwa": "jungnang-gu",
+    "sangbong": "jungnang-gu", "myeonmok": "jungnang-gu", "sagajeong": "jungnang-gu",
+    "yongmasan": "jungnang-gu", "junggok": "gwangjin-gu", "children-grand-park": "gwangjin-gu",
+    "ttukseom-resort": "gwangjin-gu", "cheongdam": "gangnam-gu", "gangnam-gu-office": "gangnam-gu",
+    "hak-dong": "gangnam-gu", "nonhyeon": "gangnam-gu", "banpo": "seocho-gu", "naebang": "seocho-gu",
+    "namseong": "dongjak-gu", "boramae": "dongjak-gu", "sindaebang-samgeori": "dongjak-gu",
+    "jangseungbaegi": "dongjak-gu",
+    # 8호선
+    "amsa": "gangdong-gu", "gangdong-guoffice": "gangdong-gu", "mongchontoseong": "songpa-gu",
+    "seokchon": "songpa-gu", "songpa": "songpa-gu", "garak-market": "songpa-gu",
+    "munjeong": "songpa-gu", "jangji": "songpa-gu", "bokjeong": "songpa-gu",
+    # 9호선
+    "gaehwa": "gangseo-gu", "airport-market": "gangseo-gu", "sinbanghwa": "gangseo-gu",
+    "yangcheon-hyanggyo": "gangseo-gu", "gayang": "gangseo-gu", "jeungmi": "gangseo-gu",
+    "deungchon": "gangseo-gu", "yeomchang": "gangseo-gu", "sinmokdong": "yangcheon-gu",
+    "seonyudo": "yeongdeungpo-gu", "gukhoe": "yeongdeungpo-gu", "saetgang": "yeongdeungpo-gu",
+    "nodeul": "dongjak-gu", "heukseok": "dongjak-gu", "gubanpo": "seocho-gu", "sinbanpo": "seocho-gu",
+    "sapyeong": "seocho-gu", "sinnonhyeon": "gangnam-gu", "eonju": "gangnam-gu",
+    "seonjeongneung": "gangnam-gu", "samseong-jungang": "gangnam-gu", "bongeunsa": "gangnam-gu",
+    # 신분당선(서울 구간)
+    "yangjae-citizens-forest": "seocho-gu", "cheonggyesan": "seocho-gu",
+    # 수인분당선(서울 구간)
+    "seoulforest": "seongdong-gu", "apgujeong-rodeo": "gangnam-gu", "hanti": "gangnam-gu",
+    "guryong": "gangnam-gu", "gaepo-dong": "gangnam-gu", "daemosan": "gangnam-gu",
+    # 경의중앙선·경춘선(서울 구간)
+    "gajwa": "seodaemun-gu", "jungnang": "jungnang-gu", "mangu": "jungnang-gu",
+    # 신림선
+    "seoul-national-univ-venture": "gwanak-gu", "gwanaksan": "gwanak-gu", "seowon": "gwanak-gu",
+    # 우이신설선
+    "bukhansan-ui": "gangbuk-gu", "solbat": "gangbuk-gu", "4-19-democracy": "gangbuk-gu",
+    "gaori": "gangbuk-gu", "hwagye": "gangbuk-gu", "samyang": "gangbuk-gu",
+    "samyang-sageori": "gangbuk-gu", "solsaem": "seongbuk-gu",
+}

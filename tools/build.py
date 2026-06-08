@@ -517,78 +517,177 @@ def build_stations():
         add(f"/seoul/stations/{ls}/", lib.document(f"{ll} 출장마사지 안내",
             f"{ll} 주요 역 인근 출장마사지·홈타이 방문 안내.", f"/seoul/stations/{ls}/", lbody), "0.6", "weekly")
 
-    # 역별 페이지 — 노선(환승)·인근 자치구로 차별화
+    # 역별 페이지 — 노선·인근 자치구·생활권 기반 9섹션 구성
+    THEME_SETS = {
+        "work":  ["sports-massage", "swedish", "aroma-therapy", "24hours"],
+        "home":  ["home-care", "aroma-therapy", "sleep-available", "swedish"],
+        "univ":  ["home-care", "aroma-therapy", "sports-massage", "thai-massage"],
+        "hotel": ["hotel-massage", "aroma-therapy", "swedish", "foot-massage"],
+    }
+    DEFAULT_THEMES = ["home-care", "aroma-therapy", "sports-massage", "thai-massage"]
+    A = '<div class="article">'
+
     for st, sname, ls, ll in allst:
-        lines = data.station_lines(st)             # 이 역을 지나는 모든 노선
+        lines = data.station_lines(st)
         transfer = len(lines) >= 2
-        gu_slug = data.STATION_GU.get(st)          # 인근 자치구(알려진 경우)
+        gu_slug = data.STATION_GU.get(st)
         gu = data.GU_BY_SLUG.get(gu_slug) if gu_slug else None
         gu_name = gu[0] if gu else None
-        gu_rl = gu[2] if gu else None
         focus = GU_FOCUS_OF.get(gu_slug, "") if gu_slug else ""
-
+        dongs = data.GU_AREAS.get(gu_slug, []) if gu_slug else []
+        neighbors = [(n, data.station_name(n)) for n in data.station_neighbors(st)][:5]
         line_txt = "·".join(lines) if lines else ll
+
         if transfer:
-            line_sentence = (f"{sname}역은 {line_txt}이 지나는 환승역으로 교통이 편리해, "
-                             "여러 방향에서 접근이 쉬운 만큼 예약 시간에 맞춘 방문도 수월한 편입니다.")
+            line_sentence = (f"{sname}역은 {line_txt}이 지나는 환승역으로 여러 방향에서 접근이 쉬워, "
+                             "예약 시간에 맞춘 방문도 수월한 편입니다.")
         else:
-            line_sentence = (f"{sname}역은 {line_txt} 구간에 위치한 역으로, 역 인근 도로 연결이 좋아 "
+            line_sentence = (f"{sname}역은 {line_txt} 구간에 위치한 역으로 인근 도로 연결이 좋아, "
                              "예약 시간에 맞춘 방문이 수월한 편입니다.")
-        gu_sentence = (f"행정구역상 {gu_name} 생활권에 가까워 인근 자택·오피스텔·숙소로 방문 안내가 가능합니다."
-                       if gu_name else "역 인근 자택·오피스텔·숙소로 방문 안내가 가능합니다.")
 
-        secs = []
-        secs.append((f"{sname}역 인근 방문 안내", lib.P(
-            f"{sname}역 인근으로 방문하는 출장마사지·홈타이 안내입니다. {line_sentence} {gu_sentence}")))
+        # 1) 이용 안내
+        s1 = _home_section("GUIDE", f"{sname}역 출장마사지·홈타이 이용 안내",
+            A + lib.P(
+            f"{sname}역 인근에서 방문 마사지와 홈타이 예약을 찾는 분들을 위해 이용 가능 지역과 코스 선택 기준, "
+            f"예약 전 확인사항을 안내합니다. {line_sentence}",
+            f"예약 시에는 정확한 위치와 희망 시간, 코스, 인원 정보를 기준으로 방문 가능 여부를 확인합니다. "
+            f"{sname}역 인근 자택과 오피스텔, 숙소 등 조용히 휴식할 수 있는 공간이라면 이용할 수 있으며, "
+            "만 19세 이상 성인을 대상으로 한 건강관리(이완·휴식) 목적의 방문 관리입니다.") + "</div>",
+            pad_top=False)
 
-        # 노선·환승 안내(역마다 고유)
-        line_links = " · ".join(
-            f'<a href="/seoul/stations/{lsx}/">{llx}</a>'
-            for lsx, llx, _ in data.LINES if llx in lines) or ll
-        secs.append(("노선·환승 안내", lib.P(
-            f"{sname}역을 지나는 노선은 {line_txt}입니다." +
-            ("여러 노선이 만나는 환승역이라 다양한 지역에서 이용하기 좋습니다. " if transfer else "") +
-            f"노선별 역 목록은 {line_links} 안내에서 확인할 수 있습니다.")))
+        # 2) 인근 방문 가능 생활권
+        if gu_name and dongs:
+            life_lead = (f"{sname}역은 {gu_name} {'·'.join(dongs[:3])} 생활권과 연결되는 역세권입니다. "
+                         "주변에는 주거지와 오피스텔, 병원·공원 인근 생활권이 함께 형성되어 있어, "
+                         "예약 시 정확한 주소와 공동현관 출입 방법을 기준으로 방문 가능 여부를 확인하는 것이 좋습니다.")
+            life_items = [f"{sname}역 인근 {d} 생활권" for d in dongs[:4]] + [f"{sname}역 인근 주거지·숙소·오피스텔 방문 안내"]
+        else:
+            life_lead = (f"{sname}역 인근은 주거지와 오피스텔, 숙소가 함께 형성된 생활권입니다. "
+                         "예약 시 정확한 주소와 공동현관 출입 방법을 기준으로 방문 가능 여부를 확인하는 것이 좋습니다.")
+            life_items = [f"{sname}역 인근 주거지 방문 안내", f"{sname}역 인근 오피스텔·숙소 방문 안내", "조용한 공간 우선 안내"]
+        s2 = _home_section("AREA", f"{sname}역 인근 방문 가능 생활권",
+            A + lib.P(life_lead)
+            + "<ul>" + "".join(f"<li>{x}</li>" for x in life_items) + "</ul>"
+            + lib.P(f"{sname}역 인근은 도보 생활권이 넓게 분포해, 방문 위치와 시간을 미리 알려 주시면 "
+                    "더 정확하게 안내해 드릴 수 있습니다.") + "</div>",
+            pad_top=False)
 
-        # 인근 자치구 안내(있을 때)
+        # 3) 주변 지역 함께 보기 (내부링크)
+        links = []
         if gu_name:
-            dongs = data.GU_AREAS.get(gu_slug, [])
-            dong_txt = (" 인근에는 " + ", ".join(dongs[:4]) + " 등 생활권이 있어 ") if dongs else " "
-            secs.append((f"{gu_name} 생활권 안내", lib.P(
-                f"{sname}역은 {gu_name} 생활권과 가깝습니다.{dong_txt}자택·오피스텔 방문 모두 가능합니다. "
-                f"{gu_name} 전체 안내는 <a href='/seoul/{gu_slug}/'>{gu_name} 출장마사지·홈타이</a>에서 확인하세요.")))
+            links.append((f"/seoul/{gu_slug}/", f"{gu_name} 출장마사지"))
+        for nslug, nname in neighbors:
+            links.append((f"/seoul/stations/{nslug}-station/", f"{nname}역"))
+        for lsx, llx, _ in data.LINES:
+            if llx in lines:
+                links.append((f"/seoul/stations/{lsx}/", llx))
+        link_html = "".join(f'<li><a href="{h}">{esc(t)}</a></li>' for h, t in links)
+        s3 = _home_section("NEARBY", f"{sname}역 주변 지역 함께 보기",
+            A + lib.P(
+            f"{sname}역과 함께 살펴보면 좋은 인근 지역과 역을 안내합니다. 환승역이나 인근 역은 내부링크로 연결하며, "
+            "역과 테마를 조합한 별도 페이지는 만들지 않습니다.") + "</div>"
+            + f'<ul style="max-width:760px;columns:2;color:#c8c8d0">{link_html}</ul>',
+            pad_top=False)
 
-        # 추천 코스(인근 자치구 유형으로 차별화)
-        secs.append(("추천 코스·예약", lib.P(
-            (_focus_course(sname, focus) if focus else
-             "처음이라면 전신을 고르게 받는 90분 코스가 무난합니다. 스웨디시·아로마·타이·스포츠 등 원하는 테마로 진행할 수 있습니다.") +
-            f" 예약은 {lib.PHONE_D}로 연중무휴 24시간 가능합니다.")))
-        # 코스별 기본 요금(가격표)
-        secs.append(("코스별 기본 요금", lib.pmenu()))
+        # 4) 많이 찾는 테마 + 가격표
+        th = THEME_SETS.get(focus, DEFAULT_THEMES)
+        th_named = [(s, data.THEME_BY_SLUG[s][0]) for s in th]
+        th_links = "".join(f'<li><a href="/theme/{s}/">{esc(n)}</a></li>' for s, n in th_named)
+        s4 = _home_section("THEME", f"{sname}역에서 많이 찾는 테마",
+            A + lib.P(
+            f"{sname}역 인근에서는 {', '.join(n for _, n in th_named)} 등을 많이 찾습니다. "
+            "이용 목적에 맞는 테마를 선택하면 만족도가 높으며, 각 테마의 특징과 추천 대상은 아래 안내 페이지에서 비교할 수 있습니다. "
+            "지역이나 역과 조합한 별도 페이지 대신 테마 안내 페이지에서 정보를 확인하세요.") + "</div>"
+            + f'<ul style="max-width:760px;color:#c8c8d0">{th_links}</ul>'
+            + lib.pmenu(),
+            pad_top=False)
 
-        related = [(f"/seoul/stations/{ls}/", f"{ll} 전체 역")]
-        if gu_name:
-            related.append((f"/seoul/{gu_slug}/", f"{gu_name} 안내"))
-        related += [("/theme/", "테마별 안내"), ("/reservation/", "예약 방법")]
+        # 5) 예약 가능 시간 (역·노선 정보로 차별화)
+        nb_first = neighbors[0][1] if neighbors else None
+        s5 = _home_section("HOURS", "예약 가능 시간",
+            A + lib.P(
+            f"{sname}역({line_txt}) 인근 방문 예약은 연중무휴 24시간 상담으로 접수합니다. "
+            + (f"{line_txt}이 만나는 환승역이라 여러 방향에서 이동이 가능하지만, " if transfer
+               else f"{sname}역 일대는 ")
+            + "저녁 시간대와 주말에는 문의가 몰릴 수 있어 원하는 시간이 있다면 여유 있게 예약하시는 것이 좋습니다.",
+            f"{sname}역 인근 당일 예약은 시간대와 배정 상황에 따라 달라지므로 전화로 확인해 주세요. 심야·새벽 시간대 이용도 가능하며, "
+            + (f"{gu_name} 내 정확한 위치" if gu_name else "정확한 위치")
+            + "를 함께 알려 주시면 방문 시간을 더 정확히 안내해 드릴 수 있습니다.") + "</div>",
+            pad_top=False)
 
+        # 6) 방문 전 준비사항 (역·인근역으로 차별화)
+        s6 = _home_section("PREPARE", "방문 전 준비사항",
+            A + lib.P(
+            f"{sname}역 인근"
+            + (f" {gu_name} " if gu_name else " ")
+            + "방문 전에는 아래 사항을 미리 확인해 주시면 예약이 더 원활합니다.")
+            + "<ul><li>정확한 주소와 공동현관 출입 방법</li><li>주차 가능 여부</li>"
+              "<li>관리를 받을 조용한 공간</li><li>예약자 연락 가능 여부</li></ul>"
+            + lib.P(
+            f"{sname}역 인근 숙소나 오피스텔의 경우 건물 출입 방법과 호수를 함께 알려 주시면 방문이 수월합니다."
+            + (f" {nb_first}역 등 인근에서 이동해 머무는 경우에도 동일하게 위치를 확인합니다." if nb_first else "")) + "</div>",
+            pad_top=False)
+
+        # 7) 위생 및 안전 안내 (역명으로 차별화)
+        s7 = _home_section("SAFETY", "위생 및 안전 안내",
+            A + lib.P(
+            f"{sname}역 인근 방문 관리도 위생과 안전을 가장 우선으로 운영합니다. 타월은 매회 교체하고 도구는 위생적으로 관리하며, "
+            "예약 정보 확인과 개인정보 보호를 중요하게 다룹니다. 관리사는 손 위생을 철저히 한 뒤 관리를 시작합니다.",
+            f"{sname}역 인근에서 진행되는 관리도 의료 행위가 아닌 건강관리(이완·휴식) 목적의 방문 관리이며, 무리한 요구나 불법적인 요청은 "
+            "진행되지 않습니다. 이용 전 서비스 범위와 <a href='/guide/forbidden/'>금지행위 안내</a>를 확인해 주세요.") + "</div>",
+            pad_top=False)
+
+        body = (lib.crumb([("/", "홈"), ("/seoul/stations/", "지하철역별 안내"),
+                           (f"/seoul/stations/{ls}/", ll), (None, sname + "역")])
+                + lib.lux_hero(f"{line_txt} · {sname}역", f"{sname}역 출장마사지·홈타이 예약 안내",
+                    f"{sname}역 인근 출장마사지·홈타이 안내입니다. 방문 가능 생활권과 주변 지역, 예약 가능 시간, "
+                    "이용 전 확인사항을 정리했습니다.")
+                + s1 + s2 + s3 + s4 + s5 + s6 + s7)
+
+        # 8) FAQ
+        d_txt = ", ".join(dongs[:3]) if dongs else f"{sname}역 인근 생활권"
+        theme_a = th_named[1][1] if len(th_named) > 1 else "아로마테라피"
+        nb_faq = ", ".join(f"{nm}역" for _, nm in neighbors[:3]) or "인근 역"
+        th_faq = ", ".join(n for _, n in th_named[:3])
         faq = [
-            (f"{sname}역 인근도 방문되나요",
-             (f"네. {sname}역 인근 {gu_name} 생활권으로 방문하며 정확한 가능 여부는 예약 시 위치를 기준으로 확인합니다."
-              if gu_name else f"네. {sname}역 인근으로 방문하며 정확한 가능 여부는 예약 시 위치를 기준으로 확인합니다.")),
-            ("당일 예약도 가능한가요",
-             "당일 예약은 시간대와 배정 상황에 따라 가능 여부가 달라집니다. 저녁·주말은 사전 예약을 권장합니다."),
+            (f"{sname}역 인근 방문이 가능한가요",
+             f"예약 시간, 정확한 위치, 배정 상황에 따라 가능 여부가 달라질 수 있습니다. {sname}역 인근 {d_txt} 생활권을 기준으로 확인할 수 있습니다."),
+            (f"{sname}역 근처 숙소나 오피스텔도 가능한가요",
+             f"{sname}역 인근 숙소·오피스텔 방문 가능 여부는 건물 출입 방법과 예약 시간에 따라 달라질 수 있습니다. 공동현관 출입 방법과 정확한 주소를 미리 확인해 주세요."),
+            (f"{sname}역에서 당일 예약도 가능한가요",
+             f"당일 예약은 가능할 수 있지만 {sname}역 일대도 저녁 시간대와 주말에는 문의가 몰릴 수 있습니다. 여유 있는 예약을 권장합니다."),
+            (f"{sname}역 인근에서 어떤 테마를 선택하면 좋나요",
+             f"{sname}역 인근에서는 {th_faq} 등을 많이 찾습니다. 휴식 목적이라면 <a href='/theme/aroma-therapy/'>아로마테라피</a>, "
+             "피로 회복 중심이라면 <a href='/theme/home-care/'>홈케어</a>, 근육 이완이 필요하다면 <a href='/theme/sports-massage/'>스포츠·경락</a> 안내를 참고할 수 있습니다."),
+            (f"{sname}역 예약 전 준비할 것이 있나요",
+             f"정확한 주소와 출입 방법, 주차 가능 여부, 조용한 공간을 미리 확인하면 {sname}역 인근 방문이 원활합니다. {nb_faq} 등 인근에서 이동하는 경우에도 동일합니다."),
         ]
-        eyebrow = f"{line_txt} · {sname}역"
-        crumbs = [("/", "홈"), ("/seoul/stations/", "지하철역별 안내"),
-                  (f"/seoul/stations/{ls}/", ll), (None, sname + "역")]
-        full_title = f"{sname}역 출장마사지·홈타이 | {sname}역 인근 방문 마사지 예약 안내"
-        desc = (f"{sname}역({line_txt}) 인근 출장마사지·홈타이 방문 안내. "
-                + (f"{gu_name} 생활권 방문, " if gu_name else "") + "예약 전 확인사항과 추천 코스 안내.")
-        lux_page(f"{sname}역 출장마사지·홈타이", desc,
-                 f"/seoul/stations/{st}-station/", eyebrow, f"{sname}역 출장마사지·홈타이 안내",
-                 f"{sname}역 인근으로 방문하는 출장마사지·홈타이 안내입니다. 노선·인근 생활권과 예약 전 확인사항을 정리했습니다.",
-                 secs, crumbs, faq=faq, related=related, jsonld=lib.faq_jsonld(faq),
-                 prio="0.6", full_title=full_title)
+        body += lib.faq_block(faq, title=f"{sname}역 출장마사지·홈타이 FAQ")
+
+        # 9) 예약문의 CTA
+        nb_links = " · ".join(f'<a href="/seoul/stations/{n}-station/" style="color:var(--gold)">{nm}역</a>'
+                              for n, nm in neighbors[:4])
+        body += (f'<section class="cta-band"><div>'
+                 f'<span class="eyebrow"><span class="pulse"></span>RESERVE</span>'
+                 f'<h2>{sname}역 예약문의</h2>'
+                 f'<p style="max-width:680px;margin:12px auto 20px">{sname}역 인근 방문 마사지·홈타이 예약은 정확한 위치와 '
+                 f'희망 시간, 코스 정보를 기준으로 안내합니다. 인근 생활권과 주변 역 안내를 확인하신 뒤 문의해 주세요.</p>'
+                 + (f'<p style="color:var(--muted);font-size:13px;margin-bottom:20px">인근 역: {nb_links}</p>' if nb_links else '')
+                 + f'<div class="actions" style="justify-content:center">'
+                 f'<a class="btn btn-primary" href="tel:{lib.PHONE_T}">예약문의 {lib.PHONE_D}</a>'
+                 + (f'<a class="btn btn-ghost" href="/seoul/{gu_slug}/">{gu_name} 안내</a>' if gu_name else '')
+                 + f'<a class="btn btn-ghost" href="/theme/">테마별 안내</a>'
+                 f'</div></div></section>')
+
+        full_title = (f"{sname}역 출장마사지·홈타이 | {gu_name} {sname}역 방문 마사지 안내"
+                      if gu_name else f"{sname}역 출장마사지·홈타이 | {sname}역 인근 방문 마사지 안내")
+        desc = (f"{sname}역 출장마사지·홈타이 안내 페이지입니다. "
+                + (f"{gu_name} " if gu_name else "") +
+                f"{sname}역 인근 생활권, 방문 가능 지역, 예약 가능 시간, 이용 전 확인사항을 확인해보세요.")
+        add(f"/seoul/stations/{st}-station/",
+            lib.document(f"{sname}역 출장마사지·홈타이 예약 안내", desc,
+                         f"/seoul/stations/{st}-station/", body,
+                         jsonld=lib.faq_jsonld(faq), full_title=full_title), "0.6", "weekly")
 
 
 # ────────────────────────── 테마 14 ──────────────────────────
