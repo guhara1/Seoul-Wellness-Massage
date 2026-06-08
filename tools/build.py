@@ -419,12 +419,13 @@ def build_districts():
         else:
             s3 = ""
 
-        # 4) 코스·테마 (자치구 유형으로 차별화)
+        # 4) 코스·테마 (자치구 유형으로 차별화) + 가격표
         s4 = _home_section("COURSE & THEME", f"{name} 추천 코스 및 테마",
             A + lib.P(
             f"{_focus_course(name, focus)}",
             "처음이라면 전신을 고르게 받는 90분 코스가 무난합니다. 전체 구성은 "
-            "<a href='/theme/'>테마별 안내</a>와 <a href='/course/'>코스안내</a>에서 확인하세요.") + "</div>",
+            "<a href='/theme/'>테마별 안내</a>와 <a href='/course/'>코스안내</a>에서 확인하세요.") + "</div>"
+            + lib.pmenu(),
             pad_top=False)
 
         # 5) 예약·확인사항 (간결)
@@ -562,6 +563,8 @@ def build_stations():
             (_focus_course(sname, focus) if focus else
              "처음이라면 전신을 고르게 받는 90분 코스가 무난합니다. 스웨디시·아로마·타이·스포츠 등 원하는 테마로 진행할 수 있습니다.") +
             f" 예약은 {lib.PHONE_D}로 연중무휴 24시간 가능합니다.")))
+        # 코스별 기본 요금(가격표)
+        secs.append(("코스별 기본 요금", lib.pmenu()))
 
         related = [(f"/seoul/stations/{ls}/", f"{ll} 전체 역")]
         if gu_name:
