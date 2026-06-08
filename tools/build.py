@@ -186,7 +186,8 @@ def build_home():
     s_course = _home_section("COURSE", "코스 선택 안내",
         A + lib.P(
         "코스는 이용 목적과 그날의 컨디션에 따라 선택하는 것이 좋습니다. 전반적인 피로 회복이 필요하다면 기본 관리, 편안한 휴식과 긴장 완화를 원한다면 아로마 관리, 뭉친 근육을 풀고 싶다면 스포츠 관리처럼 목적에 맞춰 확인할 수 있습니다.",
-        "처음이라면 전신을 고르게 받을 수 있는 90분 코스가 무난합니다. 자세한 코스 구성과 정찰 요금은 <a href='/course/'>코스안내</a>와 <a href='/course/guide/'>코스 선택 가이드</a>에서 확인하세요.") + "</div>",
+        "처음이라면 전신을 고르게 받을 수 있는 90분 코스가 무난합니다. 자세한 코스 구성과 정찰 요금은 <a href='/course/'>코스안내</a>와 <a href='/course/guide/'>코스 선택 가이드</a>에서 확인하세요.") + "</div>"
+        + lib.pmenu(),
         pad_top=False)
 
     s_reserve = _home_section("RESERVATION", "예약 진행 방식",
