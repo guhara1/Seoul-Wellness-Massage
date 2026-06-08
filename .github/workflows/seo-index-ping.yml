@@ -1,0 +1,64 @@
+name: SEO Index Ping
+
+# 글을 올리고(생성 HTML 커밋) 푸시할 때마다 변경된 페이지를
+# IndexNow(빙·얀덱스)와 구글 Indexing API(선택)에 즉시 통보한다.
+#
+# 적용 전 확인:
+#  - 아래 branches 를 Cloudflare Pages '프로덕션 브랜치'에 맞춰 조정(보통 main).
+#  - (선택) 구글 Indexing API 를 쓰려면 저장소 Secret 에
+#    GOOGLE_SERVICE_ACCOUNT_JSON = 서비스계정 키 JSON 원문 을 등록.
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "**/index.html"
+      - "sitemap.xml"
+      - "rss.xml"
+  workflow_dispatch:        # 수동 실행(전체 제출)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-index-ping
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2     # git diff HEAD~1 용
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # Cloudflare Pages 배포가 반영될 시간을 잠시 대기(라이브 후 통보)
+      - name: Wait for deploy
+        run: sleep 90
+
+      - name: IndexNow (Bing/Yandex) — 변경분만
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python3 tools/indexnow.py          # 수동: 전체
+          else
+            python3 tools/indexnow.py --changed # 푸시: 변경분만
+          fi
+
+      - name: Google Indexing API (선택)
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "GOOGLE_SERVICE_ACCOUNT_JSON Secret 없음 → 구글 Indexing API 건너뜀"
+            exit 0
+          fi
+          pip install --quiet google-auth requests
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python3 tools/google_indexing.py
+          else
+            python3 tools/google_indexing.py --changed
+          fi
