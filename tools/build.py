@@ -334,38 +334,151 @@ def build_seoul_hub():
 
 
 # ────────────────────────── 자치구 25 ──────────────────────────
+# 자치구 유형(추천 코스/문구 차별화) — 유사 페이지 방지
+GU_FOCUS = {
+    "work": ["gangnam-gu", "seocho-gu", "yeongdeungpo-gu", "guro-gu", "geumcheon-gu",
+             "jung-gu", "jongno-gu", "seongdong-gu"],
+    "home": ["songpa-gu", "gangdong-gu", "yangcheon-gu", "nowon-gu", "dobong-gu",
+             "gangbuk-gu", "jungnang-gu", "eunpyeong-gu", "seongbuk-gu", "dongdaemun-gu"],
+    "univ": ["mapo-gu", "seodaemun-gu", "gwangjin-gu", "gwanak-gu", "dongjak-gu"],
+    "hotel": ["yongsan-gu", "gangseo-gu"],
+}
+GU_FOCUS_OF = {g: k for k, gs in GU_FOCUS.items() for g in gs}
+
+def _focus_intro(name, focus):
+    return {
+        "work": f"{name}는 직장인 이용이 많아 퇴근 후·심야 시간대 방문 수요가 높습니다.",
+        "home": f"{name}는 주거 중심 생활권으로 가족 단위 이용과 낮 시간대 방문이 많습니다.",
+        "univ": f"{name}는 대학가와 1인 가구가 많아 합리적인 방문 관리 수요가 높습니다.",
+        "hotel": f"{name}는 호텔·숙소 이용이 많아 객실 방문 수요가 높습니다.",
+    }.get(focus, f"{name}는 다양한 생활권이 어우러진 지역입니다.")
+
+def _focus_course(name, focus):
+    return {
+        "work": ("업무로 뭉친 어깨·등에는 <a href='/course/sports/'>스포츠 관리</a>, 누적된 피로에는 "
+                 "<a href='/course/fatigue/'>피로 회복 관리</a>가 적합합니다. 늦은 시간에는 "
+                 "<a href='/theme/24hours/'>24시간</a> 예약을 활용할 수 있습니다."),
+        "home": ("편안한 휴식과 숙면에는 <a href='/theme/aroma-therapy/'>아로마테라피</a>와 "
+                 "<a href='/theme/sleep-available/'>수면 가능</a> 관리가, 가족·부모님께는 부드러운 "
+                 "<a href='/theme/swedish/'>스웨디시</a>가 잘 맞습니다."),
+        "univ": ("부담 없이 받기 좋은 <a href='/theme/swedish/'>스웨디시</a>와 긴장 완화를 위한 "
+                 "<a href='/theme/aroma-therapy/'>아로마테라피</a>가 인기입니다. 귀가 후 이동 없이 받을 수 있어 편리합니다."),
+        "hotel": ("객실에서 받는 <a href='/theme/hotel-massage/'>호텔식마사지</a>와 여독 해소를 위한 "
+                  "<a href='/course/fatigue/'>피로 회복 관리</a>가 적합합니다. 출장·여행 일정에 맞춰 예약할 수 있습니다."),
+    }.get(focus, "이용 목적에 따라 <a href='/theme/'>테마</a>와 <a href='/course/'>코스</a>를 선택할 수 있습니다.")
+
+
 def build_districts():
+    valid_st = {s for s, *_ in data.all_stations()}
     for slug, name in data.ALL_GU:
         _, rk, rl = data.GU_BY_SLUG[slug]
-        areas = data.GU_AREAS.get(slug, [])
-        area_txt = " · ".join(areas) if areas else f"{name} 전 지역"
-        secs = [
-            (f"{name} 출장마사지 안내", lib.P(
-                f"웰니스센터는 {name} 전역으로 방문하는 출장마사지·홈타이 서비스입니다. "
-                f"{area_txt} 등 어디든 관리사가 직접 방문해 익숙한 공간에서 편안하게 관리해 드립니다.",
-                f"이동·대기 없이 예약한 시간에 바로 휴식할 수 있어 {name} 주민과 직장인분들께 특히 편리합니다.")),
-            ("주요 생활권 방문", "<ul>" + "".join(f"<li>{a} 일대 방문 관리</li>" for a in (areas or [f'{name} 전역'])) + "</ul>"
-                + lib.P(f"위 지역 외에도 {name} 전역으로 방문하니 편하게 문의해 주세요.")),
-            ("추천 코스", lib.P(
-                "업무·일상 피로엔 <a href='/course/fatigue/'>피로 회복 관리</a>, 긴장 완화엔 "
-                "<a href='/theme/aroma-therapy/'>아로마테라피</a>, 근육 뭉침엔 "
-                "<a href='/course/sports/'>스포츠 관리</a>를 권해 드립니다. 처음이라면 90분 스웨디시가 무난합니다.")),
-            ("예약 안내", lib.P(
-                f"전화 한 통이면 됩니다. {lib.PHONE_D}로 원하는 시간·코스·주소를 알려주세요. "
-                "연중무휴 24시간 상담이 가능합니다.")),
-        ]
-        related = [(f"/seoul/area/#{rk}", f"{rl} 전체 보기"), ("/course/price/", "가격 안내"),
-                   ("/theme/swedish/", "스웨디시 안내"), ("/reservation/", "예약 방법")]
+        dongs = data.GU_AREAS.get(slug, [])
+        gu_desc = data.GU_DESC.get(slug, f"{name}는 서울 {rl}에 속한 자치구입니다.")
+        # 같은 권역의 다른 자치구(교차 내부링크)
+        siblings = [(s, n) for _, rl2, gus in data.REGIONS if rl2 == rl
+                    for s, n in gus if s != slug]
+        # 인근 역 카드(존재하는 슬러그만)
+        st_slugs = [s for s in data.GU_STATIONS.get(slug, []) if s in valid_st]
+        st_names = [data.station_name(s) for s in st_slugs]
+        focus = GU_FOCUS_OF.get(slug, "")
+
+        A = '<div class="article">'
+        # 1) 서비스 안내 (지역 특성 + 유형으로 차별화)
+        s1 = _home_section("SERVICE", f"{name} 출장마사지·홈타이 서비스 안내",
+            A + lib.P(
+            f"{name}는 {gu_desc} {_focus_intro(name, focus)} 웰니스센터는 {name} 전역으로 관리사가 직접 방문하는 "
+            "출장마사지·홈타이를 안내하며, 자택과 오피스텔, 호텔·숙소 등 조용히 휴식할 수 있는 공간이라면 어디서든 이용할 수 있습니다.",
+            "예약 시에는 희망 위치와 시간, 코스 정보를 먼저 확인한 뒤 방문 가능 여부를 안내해 드립니다. "
+            "만 19세 이상 성인을 대상으로 한 건강관리(이완·휴식) 목적의 방문 관리입니다.") + "</div>",
+            pad_top=False)
+
+        # 2) 방문 가능 지역 (대표 동, 행정동 통합 안내)
+        chips = "".join(f'<span class="chip">{d}</span>' for d in (dongs or [f"{name} 전역"]))
+        s2 = _home_section("AREA", f"{name} 방문 가능 지역 안내",
+            A + lib.P(
+            f"{name}의 방문 안내는 대표 동을 기준으로 구성됩니다. 아래 지역을 중심으로 {name} 전역을 안내하며, "
+            "1동·2동처럼 숫자로 나뉜 행정동은 별도 페이지 대신 대표 동 기준으로 통합해 안내합니다.") + "</div>"
+            + f'<div class="chips">{chips}</div>'
+            + lib.P(f'정확한 방문 가능 여부는 예약 시 위치를 기준으로 확인하며, {rl} 전체는 '
+                    f'<a href="/seoul/area/#{rk}">{rl} 안내</a>에서 확인할 수 있습니다.'),
+            pad_top=False)
+
+        # 3) 인근 지하철역
+        if st_slugs:
+            st_cards = cards([("역세권", nm, "인근 생활권·예약 안내",
+                               f"/seoul/stations/{sl}-station/", "안내 보기")
+                              for sl, nm in zip(st_slugs, st_names)])
+            st_intro = (f"{name} 인근의 주요 지하철역을 기준으로도 위치를 확인할 수 있습니다. "
+                        f"{', '.join(st_names)} 등 인근 역 상세 페이지에서 주변 생활권과 예약 가능 시간을 안내합니다.")
+            s3 = _home_section("STATION", f"{name} 인근 지하철역 안내",
+                A + lib.P(st_intro) + "</div>" + f'<div style="margin-top:24px">{st_cards}</div>',
+                pad_top=False)
+        else:
+            s3 = ""
+
+        # 4) 코스·테마 (자치구 유형으로 차별화)
+        s4 = _home_section("COURSE & THEME", f"{name} 추천 코스 및 테마",
+            A + lib.P(
+            f"{_focus_course(name, focus)}",
+            "처음이라면 전신을 고르게 받는 90분 코스가 무난합니다. 전체 구성은 "
+            "<a href='/theme/'>테마별 안내</a>와 <a href='/course/'>코스안내</a>에서 확인하세요.") + "</div>",
+            pad_top=False)
+
+        # 5) 예약·확인사항 (간결)
+        s5 = _home_section("RESERVATION", "예약 진행 및 이용 전 확인사항",
+            A + lib.P("예약은 희망 위치와 시간을 확인한 뒤 코스·인원·방문 장소 정보를 기준으로 진행됩니다. "
+                      "원활한 방문을 위해 아래 항목을 미리 확인해 주세요.")
+            + "<ul><li>정확한 주소와 공동현관 출입 방법</li><li>주차 가능 여부</li>"
+              "<li>조용한 공간 확보</li><li>예약자 연락 가능 여부</li></ul>"
+            + lib.P("자세한 절차는 <a href='/reservation/'>예약안내</a>에서 확인할 수 있습니다.") + "</div>",
+            pad_top=False)
+
+        # 6) 위생·안전 (간결)
+        s6 = _home_section("SAFETY", "위생 및 안전 안내",
+            A + lib.P(
+            "타월은 매회 교체하고 도구는 위생적으로 관리하며, 예약 정보 확인과 개인정보 보호를 중요하게 운영합니다. "
+            "무리한 요구나 불법적인 요청은 진행되지 않으며, 본 서비스는 의료 행위가 아닌 건강관리 목적의 방문 관리입니다. "
+            "이용 전 <a href='/guide/forbidden/'>금지행위 안내</a>를 확인해 주세요.") + "</div>",
+            pad_top=False)
+
+        body = (lib.crumb([("/", "홈"), ("/seoul/area/", "지역별 안내"), (None, name)])
+                + lib.lux_hero(f"{rl} · {name}", f"{name} 출장마사지·홈타이 예약 안내",
+                    f"{name} 전역 방문 마사지·홈타이 안내입니다. 대표 동과 인근 지하철역, 코스·테마, 예약 전 확인사항을 정리했습니다.")
+                + s1 + s2 + s3 + s4 + s5 + s6)
+
+        # 7) FAQ (지역명·인근역으로 차별화)
+        near = st_names[0] if st_names else f"{name} 주요 지역"
         faq = [
-            (f"{name} 전역 방문되나요", f"네. {name} 전 지역으로 방문하며 예약 시 정확한 위치를 확인합니다."),
-            ("심야에도 가능한가요", "네. 24시간 예약이 가능합니다."),
-            ("요금은 얼마인가요", "60분 90,000원, 90분 150,000원, 120분 180,000원 정찰 요금 기준입니다."),
+            (f"{name} 전역 방문이 가능한가요",
+             f"예약 시간과 위치, 배정 상황에 따라 가능 여부가 달라질 수 있습니다. {name}는 대표 동을 기준으로 안내하며 정확한 가능 여부는 예약 시 확인합니다."),
+            (f"{name}에서 당일 예약도 되나요",
+             "당일 예약은 시간대와 배정 상황에 따라 가능 여부가 달라집니다. 저녁 시간대와 주말은 사전 예약을 권장합니다."),
+            (f"{name} 인근 지하철역에서도 안내받을 수 있나요",
+             f"네. {near}역 등 인근 역은 <a href='/seoul/stations/'>지하철역별 안내</a>에서 주변 생활권과 함께 확인할 수 있습니다."),
+            ("요금은 어떻게 되나요",
+             "코스·시간에 따라 안내되며 표시 요금은 정찰가입니다. 자세한 내용은 <a href='/course/price/'>가격 안내</a>를 확인하세요."),
         ]
-        lux_page(f"{name} 출장마사지", f"{name} 출장마사지·홈타이 방문 안내. {area_txt} 전역 방문, 정찰 요금, 24시간 예약.",
-                 f"/seoul/{slug}/", f"{rl} · {name}", f"{name} 출장마사지 안내",
-                 f"{name} 전역으로 방문하는 출장마사지·홈타이. {area_txt} 어디든 예약한 시간에 편안하게.",
-                 secs, [("/", "홈"), ("/seoul/area/", "지역별 안내"), (None, name)],
-                 faq=faq, related=related, jsonld=lib.faq_jsonld(faq), prio="0.7")
+        body += lib.faq_block(faq)
+
+        # 8) 예약문의 CTA + 같은 권역 교차 링크
+        sib_links = " · ".join(f'<a href="/seoul/{s}/" style="color:var(--gold)">{n}</a>' for s, n in siblings[:6])
+        body += (f'<section class="cta-band"><div>'
+                 f'<span class="eyebrow"><span class="pulse"></span>RESERVE</span>'
+                 f'<h2>{name} 예약문의</h2>'
+                 f'<p style="max-width:680px;margin:12px auto 20px">{name} 방문 마사지·홈타이 예약은 희망 위치와 시간, 코스 정보를 기준으로 안내합니다. '
+                 f'대표 동과 인근 지하철역 안내를 확인하신 뒤 문의해 주세요.</p>'
+                 + (f'<p style="color:var(--muted);font-size:13px;margin-bottom:20px">{rl} 다른 지역: {sib_links}</p>' if sib_links else '')
+                 + f'<div class="actions" style="justify-content:center">'
+                 f'<a class="btn btn-primary" href="tel:{lib.PHONE_T}">예약문의 {lib.PHONE_D}</a>'
+                 f'<a class="btn btn-ghost" href="/seoul/area/#{rk}">{rl} 안내</a>'
+                 f'<a class="btn btn-ghost" href="/theme/">테마별 안내</a>'
+                 f'</div></div></section>')
+
+        desc = (f"{name} 출장마사지·홈타이 예약 안내. {name} 대표 동과 인근 지하철역, 코스·테마, "
+                "예약 전 확인사항을 한눈에 확인하세요.")
+        full_title = f"{name} 출장마사지·홈타이 | {name} 방문 마사지 예약 안내"
+        add(f"/seoul/{slug}/", lib.document(f"{name} 출장마사지·홈타이 예약 안내", desc,
+            f"/seoul/{slug}/", body, jsonld=lib.faq_jsonld(faq), full_title=full_title), "0.7", "weekly")
 
 
 # ────────────────────────── 지하철역 ──────────────────────────

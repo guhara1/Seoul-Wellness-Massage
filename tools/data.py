@@ -53,6 +53,64 @@ GU_AREAS = {
     "eunpyeong-gu": ["연신내", "응암동", "불광동", "녹번동"],
 }
 
+# 자치구별 지역 특성(차별화용 한 줄 설명) — 유사 페이지 방지
+GU_DESC = {
+    "gangnam-gu": "업무지구와 고급 주거가 밀집해 직장인·심야 이용 수요가 높은 지역입니다.",
+    "seocho-gu": "법조·업무지구와 대단지 주거가 함께 있어 직장인과 가족 단위 이용이 고른 지역입니다.",
+    "songpa-gu": "대규모 아파트 단지와 업무·상업 시설이 어우러진 생활권입니다.",
+    "gangdong-gu": "한강 인접 주거지가 많아 가족 단위 방문 수요가 안정적인 지역입니다.",
+    "gangseo-gu": "마곡 업무지구와 공항 인접 생활권으로 직장인·출장객 이용이 많습니다.",
+    "yangcheon-gu": "목동을 중심으로 학군·주거가 발달한 정주형 생활권입니다.",
+    "guro-gu": "구로디지털단지 등 IT 업무지구가 있어 야간·퇴근 후 이용이 많습니다.",
+    "geumcheon-gu": "가산디지털단지를 중심으로 직장인 밀집도가 높은 지역입니다.",
+    "gwanak-gu": "대학가와 1인 가구가 많아 합리적인 방문 관리 수요가 높은 지역입니다.",
+    "dongjak-gu": "노량진·사당 등 교통 요지와 주거가 결합된 생활권입니다.",
+    "yeongdeungpo-gu": "여의도 금융가와 영등포 상권이 있어 직장인 이용이 활발합니다.",
+    "gwangjin-gu": "건대입구 상권과 대학가를 중심으로 활기가 있는 지역입니다.",
+    "seongdong-gu": "성수동 오피스와 신축 주거가 늘며 방문 수요가 빠르게 증가한 지역입니다.",
+    "dongdaemun-gu": "청량리·회기 등 교통 요지와 대학가가 있는 생활권입니다.",
+    "jungnang-gu": "면목·상봉 등 안정적인 주거지가 넓게 분포한 지역입니다.",
+    "seongbuk-gu": "대학가와 주거지가 어우러져 정주 인구가 많은 지역입니다.",
+    "gangbuk-gu": "수유·미아를 중심으로 한 전통적인 주거 생활권입니다.",
+    "dobong-gu": "창동·쌍문 등 대단지 주거가 많은 정주형 지역입니다.",
+    "nowon-gu": "대규모 아파트 단지가 밀집해 가족 단위 수요가 고른 지역입니다.",
+    "jongno-gu": "도심 업무지구와 관광·역사 지구가 함께 있는 중심권입니다.",
+    "jung-gu": "명동·을지로 등 도심 상권과 호텔이 밀집한 지역입니다.",
+    "yongsan-gu": "이태원·한남과 호텔이 많아 출장객·외국인 거주 수요가 높은 지역입니다.",
+    "mapo-gu": "홍대·합정을 중심으로 1인 가구와 젊은 층이 많은 생활권입니다.",
+    "seodaemun-gu": "신촌 대학가와 주거지가 결합된 활기 있는 지역입니다.",
+    "eunpyeong-gu": "연신내·불광을 중심으로 한 대규모 주거 생활권입니다.",
+}
+
+# 자치구 인근 대표 지하철역(역 슬러그) — 존재하는 슬러그만 사용
+GU_STATIONS = {
+    "gangnam-gu": ["gangnam", "yeoksam", "seolleung", "samseong", "apgujeong"],
+    "seocho-gu": ["gyodae", "express-bus-terminal", "yangjae", "nambu-terminal", "bangbae"],
+    "songpa-gu": ["jamsil", "garak-market", "munjeong", "mongchontoseong"],
+    "gangdong-gu": ["cheonho", "gangdong", "gildong", "amsa"],
+    "gangseo-gu": ["gimpo-airport", "magongnaru", "hwagok", "gayang"],
+    "yangcheon-gu": ["omokgyo", "mokdong", "sinjeong", "kkachisan"],
+    "guro-gu": ["sindorim", "guro-digital-complex", "daerim"],
+    "geumcheon-gu": ["gasan-digital-complex", "doksan", "geumcheon-gu-office"],
+    "gwanak-gu": ["sillim", "nakseongdae", "seoul-nat-univ", "bongcheon"],
+    "dongjak-gu": ["sadang", "noryangjin", "isu", "dongjak"],
+    "yeongdeungpo-gu": ["yeouido", "yeongdeungpo", "dangsan", "mullae"],
+    "gwangjin-gu": ["konkuk-univ", "gunja", "children-grand-park", "achasan"],
+    "seongdong-gu": ["wangsimni", "seongsu", "ttukseom", "majang"],
+    "dongdaemun-gu": ["cheongnyangni", "hoegi", "jegi-dong", "sinseol-dong"],
+    "jungnang-gu": ["sangbong", "mangu", "myeonmok", "junghwa"],
+    "seongbuk-gu": ["sungshin-womens-univ", "hansung-univ", "bomun", "korea-univ"],
+    "gangbuk-gu": ["suyu", "mia", "miasageori"],
+    "dobong-gu": ["chang-dong", "ssangmun", "banghak", "dobong"],
+    "nowon-gu": ["nowon", "junggye", "hagye", "gongneung", "madeul"],
+    "jongno-gu": ["jongno-3ga", "jonggak", "gwanghwamun", "anguk", "gyeongbokgung"],
+    "jung-gu": ["city-hall", "euljiro-3ga", "myeong-dong", "chungmuro"],
+    "yongsan-gu": ["yongsan", "itaewon", "samgakji", "ichon", "hangangjin"],
+    "mapo-gu": ["hongik-univ", "hapjeong", "mangwon", "gongdeok", "sangsu"],
+    "seodaemun-gu": ["sinchon", "ewha-womans-univ", "hongje", "muakjae"],
+    "eunpyeong-gu": ["yeonsinnae", "bulgwang", "gupabal", "nokbeon"],
+}
+
 GU_BY_SLUG = {slug: (name, rk, rl) for rk, rl, gus in REGIONS for slug, name in gus}
 ALL_GU = [(slug, name) for _, _, gus in REGIONS for slug, name in gus]
 
