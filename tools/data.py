@@ -114,6 +114,58 @@ GU_STATIONS = {
 GU_BY_SLUG = {slug: (name, rk, rl) for rk, rl, gus in REGIONS for slug, name in gus}
 ALL_GU = [(slug, name) for _, _, gus in REGIONS for slug, name in gus]
 
+# 자치구별 대표 동(洞) — (dong_slug, 한글 동 베이스). 표기는 베이스+"동", 경로는 /seoul/<gu>/<slug>/
+DONGS = {
+    "gangnam-gu": [("yeoksam-dong", "역삼"), ("samseong-dong", "삼성"), ("cheongdam-dong", "청담"),
+                   ("nonhyeon-dong", "논현"), ("daechi-dong", "대치"), ("sinsa-dong", "신사")],
+    "seocho-gu": [("seocho-dong", "서초"), ("banpo-dong", "반포"), ("bangbae-dong", "방배"),
+                  ("jamwon-dong", "잠원"), ("yangjae-dong", "양재")],
+    "songpa-gu": [("jamsil-dong", "잠실"), ("munjeong-dong", "문정"), ("garak-dong", "가락"),
+                  ("songpa-dong", "송파"), ("bangi-dong", "방이")],
+    "gangdong-gu": [("cheonho-dong", "천호"), ("gil-dong", "길"), ("dunchon-dong", "둔촌"),
+                    ("seongnae-dong", "성내"), ("amsa-dong", "암사")],
+    "gangseo-gu": [("hwagok-dong", "화곡"), ("magok-dong", "마곡"), ("deungchon-dong", "등촌"),
+                   ("yeomchang-dong", "염창"), ("gayang-dong", "가양")],
+    "yangcheon-gu": [("mok-dong", "목"), ("sinjeong-dong", "신정"), ("sinwol-dong", "신월")],
+    "guro-gu": [("guro-dong", "구로"), ("sindorim-dong", "신도림"), ("gaebong-dong", "개봉"),
+                ("gocheok-dong", "고척")],
+    "geumcheon-gu": [("gasan-dong", "가산"), ("doksan-dong", "독산"), ("siheung-dong", "시흥")],
+    "gwanak-gu": [("sillim-dong", "신림"), ("bongcheon-dong", "봉천"), ("namhyeon-dong", "남현")],
+    "dongjak-gu": [("daebang-dong", "대방"), ("sangdo-dong", "상도"), ("sindaebang-dong", "신대방"),
+                   ("noryangjin-dong", "노량진"), ("heukseok-dong", "흑석"), ("sadang-dong", "사당")],
+    "yeongdeungpo-gu": [("yeouido-dong", "여의도"), ("yeongdeungpo-dong", "영등포"), ("dangsan-dong", "당산"),
+                        ("mullae-dong", "문래"), ("singil-dong", "신길")],
+    "gwangjin-gu": [("jayang-dong", "자양"), ("guui-dong", "구의"), ("hwayang-dong", "화양"),
+                    ("gunja-dong", "군자"), ("gwangjang-dong", "광장")],
+    "seongdong-gu": [("seongsu-dong", "성수"), ("haengdang-dong", "행당"), ("geumho-dong", "금호"),
+                     ("oksu-dong", "옥수"), ("majang-dong", "마장")],
+    "dongdaemun-gu": [("jeonnong-dong", "전농"), ("dapsimni-dong", "답십리"), ("imun-dong", "이문"),
+                      ("jangan-dong", "장안"), ("hoegi-dong", "회기")],
+    "jungnang-gu": [("myeonmok-dong", "면목"), ("sangbong-dong", "상봉"), ("junghwa-dong", "중화"),
+                    ("muk-dong", "묵"), ("sinnae-dong", "신내")],
+    "seongbuk-gu": [("seongbuk-dong", "성북"), ("jeongneung-dong", "정릉"), ("gireum-dong", "길음"),
+                    ("donam-dong", "돈암"), ("anam-dong", "안암")],
+    "gangbuk-gu": [("suyu-dong", "수유"), ("mia-dong", "미아"), ("beon-dong", "번"), ("ui-dong", "우이")],
+    "dobong-gu": [("chang-dong", "창"), ("ssangmun-dong", "쌍문"), ("banghak-dong", "방학"),
+                  ("dobong-dong", "도봉")],
+    "nowon-gu": [("sanggye-dong", "상계"), ("junggye-dong", "중계"), ("hagye-dong", "하계"),
+                 ("gongneung-dong", "공릉"), ("wolgye-dong", "월계")],
+    "jongno-gu": [("hyehwa-dong", "혜화"), ("samcheong-dong", "삼청"), ("pyeongchang-dong", "평창"),
+                  ("buam-dong", "부암"), ("sajik-dong", "사직")],
+    "jung-gu": [("myeong-dong", "명"), ("sindang-dong", "신당"), ("hwanghak-dong", "황학"),
+                ("hoehyeon-dong", "회현"), ("euljiro-dong", "을지로")],
+    "yongsan-gu": [("itaewon-dong", "이태원"), ("hannam-dong", "한남"), ("cheongpa-dong", "청파"),
+                   ("hyochang-dong", "효창"), ("huam-dong", "후암")],
+    "mapo-gu": [("hapjeong-dong", "합정"), ("sangsu-dong", "상수"), ("gongdeok-dong", "공덕"),
+                ("mangwon-dong", "망원"), ("seogyo-dong", "서교"), ("yeonnam-dong", "연남")],
+    "seodaemun-gu": [("sinchon-dong", "신촌"), ("yeonhui-dong", "연희"), ("hongje-dong", "홍제"),
+                     ("bukahyeon-dong", "북아현"), ("namgajwa-dong", "남가좌")],
+    "eunpyeong-gu": [("eungam-dong", "응암"), ("bulgwang-dong", "불광"), ("nokbeon-dong", "녹번"),
+                     ("galhyeon-dong", "갈현"), ("yeokchon-dong", "역촌")],
+}
+DONG_NAME = {slug: base + "동" for gu, ds in DONGS.items() for slug, base in ds}
+DONG_GU = {slug: gu for gu, ds in DONGS.items() for slug, base in ds}
+
 # ────────────────────────── 테마 14 ──────────────────────────
 THEMES = [
     ("swedish", "스웨디시", "부드러운 오일 압으로 전신 순환과 이완을 돕는 대표 코스"),
