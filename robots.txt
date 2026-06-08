@@ -2,6 +2,29 @@ User-agent: *
 Allow: /
 Disallow: /tools/
 
+# Google
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+# Naver
+User-agent: Yeti
+Allow: /
+
+# Bing
+User-agent: Bingbot
+Allow: /
+
+# Daum(Kakao)
+User-agent: Daum
+Allow: /
+
+User-agent: Daumoa
+Allow: /
+
+# AI crawlers
 User-agent: GPTBot
 Allow: /
 

@@ -1423,6 +1423,50 @@ FAVICON_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
     '<text x="32" y="44" font-family="Georgia,serif" font-style="italic" font-weight="700" '
     'font-size="38" text-anchor="middle" fill="url(#g)">W</text></svg>')
 
+# IndexNow 키(빙·야ндекс·Seznam 즉시 색인). tools/indexnow.py 가 이 키로 제출한다.
+INDEXNOW_KEY = "a3f1c9e2b7d44f08a1c6e5b9d2074f3c"
+
+_RSS_MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+_RSS_DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+def _rfc822(d):
+    # 한국시간(+0900) 기준 RFC822 날짜
+    return f"{_RSS_DOW[d.weekday()]}, {d.day:02d} {_RSS_MON[d.month]} {d.year} 09:00:00 +0900"
+
+def build_rss():
+    """매거진 글 RSS 2.0 피드(/rss.xml) — 네이버 서치어드바이저 RSS 제출용."""
+    metas = _article_meta()  # 최신순
+    items = []
+    for m in metas[:40]:
+        url = f'{lib.DOMAIN}/magazine/{m["slug"]}/'
+        cat = data.MAG_CAT_NAME.get(m["cat"], m["cat"])
+        items.append(
+            "<item>"
+            f"<title>{esc(m['title'])}</title>"
+            f"<link>{url}</link>"
+            f"<guid isPermaLink=\"true\">{url}</guid>"
+            f"<category>{esc(cat)}</category>"
+            f"<description>{esc(m['lead'])}</description>"
+            f"<pubDate>{_rfc822(m['pub'])}</pubDate>"
+            "</item>")
+    build_date = _rfc822(BASE_DATE)
+    rss = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n<channel>\n'
+        f"<title>{esc(lib.SITE)} 매거진</title>\n"
+        f"<link>{lib.DOMAIN}/magazine/</link>\n"
+        f"<description>서울 출장마사지·홈타이 이용가이드와 코스·지역·테마 이야기</description>\n"
+        "<language>ko-KR</language>\n"
+        f"<lastBuildDate>{build_date}</lastBuildDate>\n"
+        f"<atom:link href=\"{lib.DOMAIN}/rss.xml\" rel=\"self\" type=\"application/rss+xml\"/>\n"
+        f"<image><url>{lib.OG_IMG}</url><title>{esc(lib.SITE)} 매거진</title>"
+        f"<link>{lib.DOMAIN}/magazine/</link></image>\n"
+        + "\n".join(items) +
+        "\n</channel>\n</rss>\n")
+    with open(os.path.join(ROOT, "rss.xml"), "w", encoding="utf-8") as f:
+        f.write(rss)
+
+
 def build_root_files():
     # favicon.svg
     with open(os.path.join(ROOT, "favicon.svg"), "w", encoding="utf-8") as f:
@@ -1440,13 +1484,27 @@ def build_root_files():
     }
     with open(os.path.join(ROOT, "site.webmanifest"), "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
-    # robots.txt
-    robots = (f"User-agent: *\nAllow: /\nDisallow: /tools/\n\n"
-              "User-agent: GPTBot\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\n"
-              "User-agent: Google-Extended\nAllow: /\n\n"
-              f"Sitemap: {lib.DOMAIN}/sitemap.xml\nHost: {lib.DOMAIN}\n")
+    # robots.txt — 전체 색인 허용 + 주요 검색엔진 크롤러 명시(구글·네이버 Yeti·빙·다음)
+    robots = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /tools/\n\n"
+        "# Google\nUser-agent: Googlebot\nAllow: /\n\n"
+        "User-agent: Googlebot-Image\nAllow: /\n\n"
+        "# Naver\nUser-agent: Yeti\nAllow: /\n\n"
+        "# Bing\nUser-agent: Bingbot\nAllow: /\n\n"
+        "# Daum(Kakao)\nUser-agent: Daum\nAllow: /\n\n"
+        "User-agent: Daumoa\nAllow: /\n\n"
+        "# AI crawlers\nUser-agent: GPTBot\nAllow: /\n\n"
+        "User-agent: ClaudeBot\nAllow: /\n\n"
+        "User-agent: Google-Extended\nAllow: /\n\n"
+        f"Sitemap: {lib.DOMAIN}/sitemap.xml\n"
+        f"Host: {lib.DOMAIN}\n")
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write(robots)
+    # IndexNow 키 파일(빙·야ндекс 즉시 색인용) — 루트에 <key>.txt
+    with open(os.path.join(ROOT, INDEXNOW_KEY + ".txt"), "w", encoding="utf-8") as f:
+        f.write(INDEXNOW_KEY)
     # sitemap.xml
     lastmod = BASE_DATE.isoformat()
     urls = "".join(
@@ -1473,8 +1531,9 @@ def main():
     build_customer()
     build_policies()
     build_magazine()
+    build_rss()
     build_root_files()
-    print(f"생성 완료: {len(PAGES)} HTML 페이지 + sitemap/robots/manifest/favicon")
+    print(f"생성 완료: {len(PAGES)} HTML 페이지 + sitemap/rss/robots/manifest/favicon")
 
 
 if __name__ == "__main__":

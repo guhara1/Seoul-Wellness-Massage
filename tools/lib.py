@@ -364,6 +364,8 @@ def head(title, desc, path, og_type="website", full_title=None, head_extra=""):
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
+<link rel="alternate" type="application/rss+xml" title="{SITE} 매거진" href="/rss.xml">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 {head_extra}<style>{CSS}</style>
 </head>
 <body>"""
