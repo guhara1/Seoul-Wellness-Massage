@@ -80,120 +80,176 @@ def lux_page(title, desc, path, eyebrow, h1, lead, secs, crumb_items,
 
 
 # ────────────────────────── 홈 ──────────────────────────
+HOME_STATIONS = [
+    ("gangnam-station", "강남역"), ("seoul-station", "서울역"), ("jamsil-station", "잠실역"),
+    ("hongik-univ-station", "홍대입구역"), ("konkuk-univ-station", "건대입구역"),
+    ("sillim-station", "신림역"), ("yeouido-station", "여의도역"),
+    ("express-bus-terminal-station", "고속터미널역"), ("gimpo-airport-station", "김포공항역"),
+    ("wangsimni-station", "왕십리역"),
+]
+
+
+def _home_section(eyebrow, h2, inner, anchor=None, pad_top=True):
+    aid = f' id="{anchor}"' if anchor else ""
+    pt = "" if pad_top else ' style="padding-top:0"'
+    return (f'<section class="block reveal"{pt}{aid}><div class="wrap">'
+            f'<span class="eyebrow"><span class="pulse"></span>{eyebrow}</span>'
+            f'<h2 class="sec">{h2}</h2>{inner}</div></section>')
+
+
 def build_home():
+    # 지역 카드: 자치구명만(키워드 접미사 없음), 부가설명은 대표 동
     region_cards = []
     for rk, rl, gus in data.REGIONS:
-        names = " · ".join(n for _, n in gus)
-        region_cards.append((f"AREA · {rk.upper()}", rl, names, f"/seoul/area/#{rk}", "지역 보기"))
-    theme_cards = [(f"THEME", n, d, f"/theme/{s}/", "자세히")
-                   for s, n, d in data.THEMES[:6]]
+        for slug, name in gus:
+            dongs = data.GU_AREAS.get(slug, [])
+            desc = " · ".join(dongs[:3]) if dongs else f"{rl} 생활권"
+            region_cards.append((rl, name, desc, f"/seoul/{slug}/", "안내 보기"))
+    # 역 카드: 역명만
+    station_cards = [("역세권", nm, "인근 생활권·예약 안내", f"/seoul/stations/{sl}/", "안내 보기")
+                     for sl, nm in HOME_STATIONS]
+    # 테마 카드: 테마명만
+    theme_cards = [("테마", n, d, f"/theme/{s}/", "안내 보기") for s, n, d in data.THEMES]
 
-    reviews = [
-        ("★★★★★", "퇴근 후 집에서 바로 받을 수 있어서 정말 편했어요. 어깨 뭉친 게 한결 가벼워졌습니다.", "강남구 · 30대 직장인"),
-        ("★★★★★", "기념일에 커플로 받았는데 두 명 다 만족했어요. 향도 좋고 압도 딱 맞았습니다.", "마포구 · 커플 이용"),
-        ("★★★★★", "출장 와서 호텔에서 받았는데 여독이 싹 풀렸어요. 시간 약속도 정확했습니다.", "중구 · 출장 고객"),
-    ]
-    review_html = "".join(
-        f'<div class="review reveal"><div class="stars">{s}</div><p>"{t}"</p><div class="who">{w}</div></div>'
-        for s, t, w in reviews)
+    A = '<div class="article">'  # 가독성 본문 래퍼
 
-    notes = [
-        ("01", "이동·대기 없는 방문 관리", "예약한 시간에 관리사가 직접 방문해 익숙한 공간에서 바로 휴식할 수 있습니다."),
-        ("02", "투명한 정찰 요금", "60·90·120분 정찰 요금을 사전에 안내드립니다. 임의 추가 요금은 없습니다."),
-        ("03", "철저한 위생·안전", "타월은 매회 교체하고 도구는 위생적으로 관리합니다. 건강관리 목적의 정중한 관리만 제공합니다."),
-    ]
-    note_html = "".join(
-        f'<div class="note-card reveal"><div class="note-num">{n}</div><div class="note-text">'
-        f'<div class="note-title">{t}</div><p>{d}</p></div></div>'
-        for n, t, d in notes)
-
-    body = f"""
+    hero = f"""
 <section class="hero"><div class="hero-inner">
   <div class="hero-text">
-    <span class="eyebrow"><span class="pulse"></span>SEOUL · 출장마사지 · 홈타이</span>
-    <h1>집에서 받는 <span class="grad">프리미엄</span> 출장마사지</h1>
-    <p class="lead">서울 전역 어디든 방문합니다. 스웨디시·아로마·타이·스포츠까지, 원하는 코스를 예약한 시간에 편안하게 받아보세요.</p>
+    <span class="eyebrow"><span class="pulse"></span>SEOUL · 방문 마사지 예약 안내</span>
+    <h1>서울 출장마사지·홈타이 예약 안내</h1>
+    <p class="lead">서울 전지역에서 방문 마사지와 홈타이 예약을 찾는 분들을 위해 지역별 가능 안내, 지하철역 인근 정보, 테마별 관리, 예약 전 확인사항을 한곳에 정리했습니다.</p>
     <div class="actions">
-      <a class="btn btn-primary" href="tel:{lib.PHONE_T}">{lib.PHONE_D} 예약하기</a>
-      <a class="btn btn-ghost" href="/course/">코스 둘러보기</a>
+      <a class="btn btn-primary" href="tel:{lib.PHONE_T}">예약문의</a>
+      <a class="btn btn-ghost" href="/seoul/area/">지역별 안내 보기</a>
+      <a class="btn btn-ghost" href="/seoul/stations/">지하철역별 안내 보기</a>
+      <a class="btn btn-ghost" href="/theme/">테마별 안내 보기</a>
     </div>
     <div class="trust">
       <span><b>연중무휴</b> 24시간 상담</span>
-      <span><b>서울 25개 구</b> 전역 방문</span>
+      <span><b>서울 25개 자치구</b> 안내</span>
       <span><b>정찰 요금</b> 사전 안내</span>
     </div>
   </div>
   <div class="hero-visual">
     <div class="glass">
-      <h3>오늘의 예약<b>지금 바로 가능</b></h3>
-      <div class="book-row"><span>60분 코스</span><span>90,000원</span></div>
-      <div class="book-row"><span>90분 코스</span><span>150,000원</span></div>
-      <div class="book-row"><span>120분 코스</span><span>180,000원</span></div>
-      <a class="bk" href="tel:{lib.PHONE_T}">전화로 예약하기</a>
+      <h3>코스별 기본 요금<b>예약 시 안내</b></h3>
+      <div class="book-row"><span>60분</span><span>90,000원</span></div>
+      <div class="book-row"><span>90분</span><span>150,000원</span></div>
+      <div class="book-row"><span>120분</span><span>180,000원</span></div>
+      <a class="bk" href="tel:{lib.PHONE_T}">예약문의</a>
     </div>
-    <div class="floating fl-1"><span class="dot"></span>지금 예약 접수 중</div>
-    <div class="floating fl-2">서울 전역 방문 가능</div>
+    <div class="floating fl-1"><span class="dot"></span>예약 상담 가능</div>
+    <div class="floating fl-2">서울 전지역 안내</div>
   </div>
-</div></section>
+</div></section>"""
 
-<div class="marquee"><div class="marquee-track">
-  <span>스웨디시</span><span>아로마테라피</span><span>타이마사지</span><span>로미로미</span><span>스포츠·경락</span>
-  <span>발마사지</span><span>홈케어</span><span>호텔식마사지</span><span>커플 관리</span><span>24시간</span>
-  <span>스웨디시</span><span>아로마테라피</span><span>타이마사지</span><span>로미로미</span><span>스포츠·경락</span>
-  <span>발마사지</span><span>홈케어</span><span>호텔식마사지</span><span>커플 관리</span><span>24시간</span>
-</div></div>
+    s_service = _home_section("SERVICE", "서울 출장마사지·홈타이 서비스 안내",
+        A + lib.P(
+        "서울 출장마사지·홈타이는 고객이 계신 장소로 관리사가 직접 방문해 편안하게 관리를 받는 방문형 서비스입니다. "
+        "예약 시에는 희망 지역과 시간, 코스 정보를 먼저 확인한 뒤 방문 가능 여부를 안내해 드립니다. "
+        "자택뿐 아니라 오피스텔, 호텔, 숙소 등 조용히 휴식할 수 있는 공간이라면 어디서든 이용할 수 있습니다.",
+        "본 서비스는 만 19세 이상 성인을 대상으로 한 건강관리(이완·휴식) 목적의 방문 관리입니다. 이용 전에는 정확한 주소와 출입 방법, 예약 가능 시간을 함께 확인하면 더 원활하게 진행됩니다.") + "</div>",
+        pad_top=False)
 
-<section class="block" id="region"><div class="wrap">
-  <span class="eyebrow"><span class="pulse"></span>AREA</span>
-  <h2 class="sec">서울 전역 어디든 방문합니다</h2>
-  <p class="sec-lead">강남권부터 서북권까지 6개 권역 25개 자치구로 출장합니다. 가까운 지역을 선택해 안내를 확인하세요.</p>
-  <div style="margin-top:30px">{cards(region_cards)}</div>
-</div></section>
+    s_allarea = _home_section("ALL AREA", "서울 전지역 방문 가능 안내",
+        A + lib.P(
+        "서울 25개 자치구를 강남권, 강서권, 서남권, 동북권, 도심권, 서북권 여섯 개 생활권으로 나누어 안내합니다. "
+        "각 자치구 페이지에서는 대표 동을 기준으로 방문 가능 지역을 확인할 수 있으며, 1동·2동처럼 숫자로 나뉜 행정동은 별도 페이지 대신 대표 동 페이지에서 통합해 안내합니다.",
+        "이렇게 구성하면 비슷한 페이지가 늘어나지 않아 원하는 지역을 더 쉽게 찾을 수 있습니다. 방문 가능 여부는 예약 시간과 위치, 배정 상황에 따라 달라질 수 있으므로 <a href='/seoul/area/'>지역별 안내</a>에서 권역과 자치구를 먼저 확인해 주세요.") + "</div>",
+        pad_top=False)
 
-<section class="block" id="theme" style="padding-top:0"><div class="wrap">
-  <span class="eyebrow"><span class="pulse"></span>THEME</span>
-  <h2 class="sec">원하는 테마로 골라보세요</h2>
-  <p class="sec-lead">컨디션과 목적에 맞춰 다양한 관리 테마를 제공합니다.</p>
-  <div style="margin-top:30px">{cards(theme_cards)}</div>
-  <div style="margin-top:18px"><a class="btn btn-ghost" href="/theme/">전체 테마 보기 →</a></div>
-</div></section>
+    s_area = _home_section("AREA", "지역별 안내",
+        A + lib.P(
+        "지역별 안내는 서울 전체에서 자치구, 대표 동 순서로 구성됩니다. 아래에서 가까운 자치구를 선택하면 해당 지역의 대표 생활권과 예약 가능 시간, 방문 전 확인사항을 확인할 수 있습니다. "
+        "숫자로 나뉜 행정동은 대표 동 페이지에서 함께 안내하여 더 쉽게 지역을 찾을 수 있도록 했습니다.") + "</div>"
+        + f'<div style="margin-top:24px">{cards(region_cards)}</div>',
+        anchor="area", pad_top=False)
 
-<section class="block" id="price" style="padding-top:0"><div class="wrap">
-  <span class="eyebrow"><span class="pulse"></span>PRICE</span>
-  <h2 class="sec">코스별 기본 요금</h2>
-  <p class="sec-lead">시간에 따라 관리 범위가 달라집니다. 처음이라면 90분 코스를 추천드립니다.</p>
-  {lib.pmenu()}
-</div></section>
+    s_station = _home_section("STATION", "지하철역 인근 안내",
+        A + lib.P(
+        "지하철역별 안내는 노선별 역 목록과 역 상세 페이지로 구성됩니다. 강남역, 서울역, 잠실역, 홍대입구역처럼 이용 문의가 많은 역은 개별 안내 페이지에서 인근 생활권과 주변 대표 동, 예약 가능 시간, 방문 전 확인사항을 확인할 수 있습니다. "
+        "노선과 역 이름으로 가까운 위치를 먼저 찾은 뒤, 정확한 방문 가능 여부는 예약 시 위치를 기준으로 안내해 드립니다.") + "</div>"
+        + f'<div style="margin-top:24px">{cards(station_cards)}</div>'
+        + '<div style="margin-top:18px"><a class="btn btn-ghost" href="/seoul/stations/">지하철역별 안내 전체 보기 →</a></div>',
+        anchor="station", pad_top=False)
 
-<section class="block" id="process" style="padding-top:0"><div class="wrap">
-  <span class="eyebrow"><span class="pulse"></span>WHY</span>
-  <h2 class="sec">웰니스센터를 선택하는 이유</h2>
-  <div class="note-stack" style="margin-top:30px">{note_html}</div>
-</div></section>
+    s_theme = _home_section("THEME", "테마별 관리 안내",
+        A + lib.P(
+        "테마별 안내에서는 스웨디시, 타이마사지, 아로마테라피, 홈케어, 호텔식마사지 등 이용 목적에 따라 선택할 수 있는 관리 유형을 소개합니다. "
+        "각 테마 페이지는 관리 특징과 추천 대상, 예약 전 확인사항을 중심으로 구성되어 처음 이용하시는 분도 자신에게 맞는 관리를 고르기 쉽습니다. 지역이나 역 이름과 조합한 중복 페이지는 만들지 않고, 테마 자체의 정보에 집중해 안내합니다.") + "</div>"
+        + f'<div style="margin-top:24px">{cards(theme_cards)}</div>',
+        anchor="theme", pad_top=False)
 
-<section class="block" id="reviews" style="padding-top:0"><div class="wrap">
-  <span class="eyebrow"><span class="pulse"></span>REVIEW</span>
-  <h2 class="sec">고객 후기</h2>
-  <div class="grid g3" style="margin-top:30px">{review_html}</div>
-  <div style="margin-top:18px"><a class="btn btn-ghost" href="/reviews/">후기 더 보기 →</a></div>
-</div></section>
-"""
+    s_course = _home_section("COURSE", "코스 선택 안내",
+        A + lib.P(
+        "코스는 이용 목적과 그날의 컨디션에 따라 선택하는 것이 좋습니다. 전반적인 피로 회복이 필요하다면 기본 관리, 편안한 휴식과 긴장 완화를 원한다면 아로마 관리, 뭉친 근육을 풀고 싶다면 스포츠 관리처럼 목적에 맞춰 확인할 수 있습니다.",
+        "처음이라면 전신을 고르게 받을 수 있는 90분 코스가 무난합니다. 자세한 코스 구성과 정찰 요금은 <a href='/course/'>코스안내</a>와 <a href='/course/guide/'>코스 선택 가이드</a>에서 확인하세요.") + "</div>",
+        pad_top=False)
+
+    s_reserve = _home_section("RESERVATION", "예약 진행 방식",
+        A + lib.P("예약은 다음 순서로 진행됩니다. 희망 지역과 시간을 먼저 확인한 뒤 코스와 인원, 방문 장소 정보를 기준으로 가능 여부를 안내해 드립니다.")
+        + "<ol><li>지역 또는 역 인근 위치 확인</li><li>희망 시간 확인</li><li>코스와 인원 확인</li>"
+          "<li>방문 가능 여부 안내</li><li>예약 확정</li></ol>"
+        + lib.P("저녁 시간대와 주말은 문의가 몰릴 수 있으므로 여유 있게 예약하시는 것을 권장합니다.") + "</div>",
+        pad_top=False)
+
+    s_check = _home_section("CHECK", "이용 전 확인사항",
+        A + lib.P("원활한 방문 관리를 위해 아래 항목을 미리 확인해 주세요. 숙소·오피스텔·주거지 방문 시에는 출입 안내와 연락 가능 여부를 함께 확인하면 예약 진행이 더 원활합니다.")
+        + "<ul><li>정확한 주소</li><li>공동현관 출입 방법</li><li>주차 가능 여부</li>"
+          "<li>조용한 공간 확보</li><li>예약자 연락 가능 여부</li><li>금지행위 안내 확인</li></ul></div>",
+        pad_top=False)
+
+    s_safety = _home_section("SAFETY", "위생 및 안전 안내",
+        A + lib.P(
+        "안전하고 건전한 방문 관리를 위해 예약 정보 확인, 위생 관리 기준, 개인정보 보호를 중요하게 운영합니다. "
+        "타월은 매회 교체하고 도구는 위생적으로 관리하며, 관리사는 손 위생을 철저히 한 뒤 관리를 시작합니다.",
+        "이용 전에는 서비스 범위와 <a href='/guide/forbidden/'>금지행위 안내</a>를 확인해 주세요. 무리한 요구나 불법적인 요청은 진행되지 않으며, 본 서비스는 의료 행위가 아닌 건강관리 목적의 방문 관리임을 명확히 안내합니다.") + "</div>",
+        pad_top=False)
+
+    body = hero + s_service + s_allarea + s_area + s_station + s_theme + s_course + s_reserve + s_check + s_safety
+
     faq = [
-        ("출장 지역은 어디까지인가요", "서울 25개 자치구 전역으로 방문하며, 일부 인근 지역도 가능합니다. 자세한 내용은 예약 시 확인해 드립니다."),
-        ("예약은 어떻게 하나요", f"전화 한 통이면 됩니다. {lib.PHONE_D}로 원하는 시간·코스·주소를 알려주세요."),
-        ("심야에도 이용할 수 있나요", "네. 연중무휴 24시간 상담·예약이 가능합니다."),
-        ("요금 외 추가 비용이 있나요", "기본은 정찰 요금이며, 코스·지역 차이는 예약 시 미리 안내해 임의 추가는 없습니다."),
+        ("서울 전지역 방문이 가능한가요",
+         "예약 시간, 위치, 배정 상황에 따라 가능 여부가 달라질 수 있습니다. <a href='/seoul/area/'>지역별 안내</a> 페이지에서 자치구와 대표 동 기준으로 확인할 수 있습니다."),
+        ("지하철역 근처도 예약할 수 있나요",
+         "주요 지하철역 인근은 역 상세 페이지에서 주변 생활권과 함께 안내합니다. 정확한 가능 여부는 예약 시 위치를 기준으로 확인합니다."),
+        ("당일 예약도 가능한가요",
+         "당일 예약은 가능할 수 있지만 시간대와 배정 상황에 따라 달라집니다. 저녁 시간대와 주말은 사전 예약을 권장합니다."),
+        ("테마별 관리는 어떻게 선택하나요",
+         "스웨디시, 타이마사지, 아로마테라피, 홈케어 등 <a href='/theme/'>테마별 안내</a> 페이지에서 특징과 추천 대상을 확인할 수 있습니다."),
+        ("예약 전 준비할 것이 있나요",
+         "정확한 주소, 출입 방법, 주차 가능 여부, 조용한 공간을 미리 확인하면 원활한 이용에 도움이 됩니다."),
     ]
     body += lib.faq_block(faq)
-    body += lib.cta_band("지금 바로 예약하세요", "연중무휴 · 24시간 상담 · 서울 전역 출장 가능합니다.")
-    jsonld = json.dumps({
+
+    # 하단 예약문의 CTA
+    body += (f'<section class="cta-band" id="contact"><div>'
+             f'<span class="eyebrow"><span class="pulse"></span>RESERVE</span>'
+             f'<h2>예약문의</h2>'
+             f'<p style="max-width:680px;margin:12px auto 24px">서울 출장마사지·홈타이 예약은 희망 지역과 지하철역 인근 위치, 시간, 코스 정보를 기준으로 가능 여부를 안내합니다. '
+             f'지역별 안내와 테마별 안내를 확인하신 뒤 문의하시면 더 빠른 상담이 가능합니다.</p>'
+             f'<div class="actions" style="justify-content:center">'
+             f'<a class="btn btn-primary" href="tel:{lib.PHONE_T}">예약문의 {lib.PHONE_D}</a>'
+             f'<a class="btn btn-ghost" href="/seoul/area/">지역별 안내 보기</a>'
+             f'<a class="btn btn-ghost" href="/seoul/stations/">지하철역별 안내 보기</a>'
+             f'<a class="btn btn-ghost" href="/theme/">테마별 안내 보기</a>'
+             f'</div></div></section>')
+
+    biz_ld = {
         "@context": "https://schema.org", "@type": "LocalBusiness",
         "name": lib.SITE, "telephone": lib.PHONE_D, "url": lib.DOMAIN,
         "image": lib.OG_IMG, "areaServed": "서울특별시",
         "priceRange": "₩₩", "openingHours": "Mo-Su 00:00-24:00",
-    }, ensure_ascii=False)
-    desc = "서울 전역 출장마사지·홈타이 안내. 스웨디시·아로마·타이·스포츠 코스를 예약한 시간에 편안하게. 연중무휴 24시간 상담."
-    add("/", lib.document("서울 출장마사지·홈타이 24시간 예약 안내", desc, "/", body, jsonld=jsonld), "1.0", "daily")
+    }
+    jsonld = (json.dumps(biz_ld, ensure_ascii=False)
+              + '</script><script type="application/ld+json">'
+              + lib.faq_jsonld(faq))
+    desc = ("서울 출장마사지·홈타이 안내 페이지입니다. 서울 전지역 방문 가능 지역, 지하철역 인근, "
+            "테마별 관리, 예약 전 확인사항을 한눈에 확인해보세요.")
+    full_title = "서울 출장마사지·홈타이 | 서울 전지역 방문 마사지 예약 안내"
+    add("/", lib.document("서울 출장마사지·홈타이 예약 안내", desc, "/", body,
+        jsonld=jsonld, full_title=full_title), "1.0", "daily")
 
 
 # ────────────────────────── 서울 허브 / 지역 ──────────────────────────

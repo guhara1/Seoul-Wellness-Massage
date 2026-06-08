@@ -220,7 +220,7 @@ details>div{padding:0 22px 20px;color:var(--muted);font-size:14.5px;line-height:
 .article h2:first-child{margin-top:8px}
 .article h3{font-size:17px;font-weight:800;margin:20px 0 8px}
 .article p{color:#c8c8d0;font-size:15px;line-height:1.85;margin:0 0 12px}
-.article ul{margin:0 0 14px;padding-left:20px;color:#c8c8d0;font-size:15px;line-height:1.85}
+.article ul,.article ol{margin:0 0 14px;padding-left:20px;color:#c8c8d0;font-size:15px;line-height:1.85}
 .article li{margin-bottom:6px}
 .article strong{color:var(--text)}
 .data-box{margin:24px 0;padding:20px 22px;border-radius:14px;background:var(--grad-soft);border:1px solid var(--line)}
@@ -333,9 +333,9 @@ def P(*ps):
     return "".join(f"<p>{x}</p>" for x in ps)
 
 # ────────────────────────── <head> ──────────────────────────
-def head(title, desc, path, og_type="website"):
+def head(title, desc, path, og_type="website", full_title=None):
     url = DOMAIN + path
-    t = f"{title} | {SITE}"
+    t = full_title if full_title else f"{title} | {SITE}"
     return f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -455,11 +455,11 @@ SCRIPT = """<script>
 })();
 </script>"""
 
-def document(title, desc, path, body, og_type="website", jsonld=None):
+def document(title, desc, path, body, og_type="website", jsonld=None, full_title=None):
     ld = ""
     if jsonld:
         ld = f'<script type="application/ld+json">{jsonld}</script>'
-    return (head(title, desc, path, og_type) + header() + body + footer()
+    return (head(title, desc, path, og_type, full_title=full_title) + header() + body + footer()
             + CALLFAB + ld + SCRIPT + "\n</body>\n</html>\n")
 
 # ────────────────────────── 공통 조각 ──────────────────────────
